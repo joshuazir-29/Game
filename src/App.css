@@ -2,7 +2,7 @@
 
 :root {
   --ink: #122619;
-  --overlay: rgba(224, 240, 205, 0.44);
+  --overlay: rgba(248, 247, 230, 0.5);
   --button-bg: rgba(194, 225, 173, 0.88);
   --button-border: #2a5838;
   --panel-bg: rgba(228, 243, 214, 0.92);
@@ -25,36 +25,50 @@
 }
 
 .menu-panel {
-  width: min(96vw, 1100px);
+  width: min(96vw, 1180px);
   color: var(--ink);
-  padding: clamp(12px, 2vw, 22px);
+  padding: clamp(8px, 1.6vw, 16px);
 }
 
-.menu-panel h1 {
-  margin: 0;
-  font-family: 'Cinzel', serif;
-  font-size: clamp(1.45rem, 6.1vw, 4.4rem);
-  line-height: 1;
-  letter-spacing: 0.04em;
+.menu-title-image {
+  display: block;
+  width: min(96vw, 1240px);
+  margin: 0 auto;
+  /* White pixels in the source image blend into the page background. */
+  mix-blend-mode: multiply;
+  clip-path: inset(0 0 2px 0);
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.28));
 }
 
 .menu-actions {
-  margin-top: clamp(10px, 2.5vh, 20px);
+  margin-top: clamp(12px, 3vh, 28px);
   display: grid;
-  gap: 10px;
+  gap: 12px;
   justify-items: center;
 }
 
 .menu-actions button {
-  width: min(74vw, 520px);
-  min-height: clamp(46px, 7vh, 74px);
-  border: 3px solid var(--button-border);
-  border-radius: 10px;
-  background: var(--button-bg);
-  color: #102317;
+  width: min(74vw, 390px);
+  min-height: clamp(42px, 6.2vh, 56px);
+  border: 2px solid rgba(13, 19, 14, 0.68);
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.13);
+  color: #151515;
   font-family: 'Cinzel', serif;
-  font-size: clamp(1.5rem, 3.3vw, 3rem);
+  font-size: clamp(1.75rem, 3vw, 2.3rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
   cursor: pointer;
+  backdrop-filter: blur(0.5px);
+}
+
+.menu-actions button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.menu-actions button:active {
+  transform: translateY(1px);
 }
 
 .story-screen {
@@ -169,6 +183,21 @@
 }
 
 @media (max-width: 700px) {
+  .menu-title-image {
+    width: min(100%, 940px);
+  }
+
+  .menu-actions {
+    margin-top: 10px;
+    gap: 10px;
+  }
+
+  .menu-actions button {
+    width: min(88vw, 350px);
+    min-height: 46px;
+    font-size: clamp(1.4rem, 6.2vw, 1.9rem);
+  }
+
   .story-controls {
     top: 8px;
     right: 8px;

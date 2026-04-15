@@ -63,13 +63,11 @@ function App() {
     return (
       <main className="menu-screen" aria-label="Main menu">
         <section className="menu-panel">
-          <h1>
-            Aklatang Luntian: Ang
-            <br />
-            Hardin ng mga
-            <br />
-            Taludtod
-          </h1>
+          <img
+            className="menu-title-image"
+            src="../Background/First.png"
+            alt="Aklatang Luntian: Ang Hardin ng mga Taludtod"
+          />
 
           <div className="menu-actions" aria-label="Menu controls">
             <button type="button" onClick={() => setScreen('play')}>
