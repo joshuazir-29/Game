@@ -30,6 +30,8 @@
   background: linear-gradient(var(--overlay), var(--overlay)), url('../Background/WEBSITE.jpg') center / cover no-repeat;
   overflow-x: clip;
   padding: 12px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
 .menu-panel {
@@ -42,7 +44,7 @@
   display: block;
   width: 100%;
   max-width: 1240px;
-  max-height: min(46vh, 440px);
+  max-height: min(52vh, 500px);
   height: auto;
   margin: 0 auto;
   /* White pixels in the source image blend into the page background. */
@@ -231,6 +233,9 @@
 
   .menu-screen {
     --bg-focus-y: 28%;
+    background: linear-gradient(rgba(248, 247, 230, 0.58), rgba(248, 247, 230, 0.58)),
+      url('../Background/WEBSITE.jpg') center / cover no-repeat;
+    padding-inline: 10px;
   }
 
   .story-screen,
@@ -241,18 +246,23 @@
   .menu-title-image {
     width: 100%;
     max-width: 940px;
-    max-height: 34vh;
+    max-height: min(40vh, 330px);
+    min-height: 120px;
+    mix-blend-mode: normal;
+    clip-path: none;
+    object-fit: contain;
   }
 
   .menu-actions {
-    margin-top: 10px;
-    gap: 10px;
+    margin-top: 12px;
+    gap: 12px;
+    width: 100%;
   }
 
   .menu-actions button {
-    width: min(88vw, 350px);
-    min-height: 46px;
-    font-size: clamp(1.4rem, 6.2vw, 1.9rem);
+    width: min(92vw, 360px);
+    min-height: 50px;
+    font-size: clamp(1.3rem, 6vw, 1.85rem);
   }
 
   .story-controls {
@@ -267,9 +277,10 @@
   }
 
   .story-box {
-    width: calc(100% - 16px);
+    width: calc(100% - 12px);
     font-size: clamp(16px, 4.8vw, 22px);
     border-width: 2px;
+    padding: 12px 14px;
   }
 
   .story-center {
@@ -285,11 +296,38 @@
   .setting-item {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
   }
 
   .setting-item button,
   .back-link {
     width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .menu-title-image {
+    max-height: min(36vh, 260px);
+    min-height: 108px;
+  }
+
+  .menu-actions button {
+    min-height: 48px;
+    font-size: clamp(1.15rem, 6.5vw, 1.5rem);
+  }
+
+  .story-title {
+    margin-top: 10px;
+    font-size: clamp(24px, 7.2vw, 30px);
+  }
+
+  .story-character {
+    width: min(86vw, 360px);
+  }
+
+  .settings-panel {
+    width: min(96vw, 620px);
+    padding: 12px;
   }
 }
 

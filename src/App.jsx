@@ -6,6 +6,7 @@ import menuIcon from '../Background/Icon/menu.png'
 import infoIcon from '../Background/Icon/info.png'
 import homeIcon from '../Background/Icon/home.png'
 import liwaywayImage from '../Background/Liwayway.png'
+import titleImage from '../Background/First.png'
 
 const storyText =
   'May takdang-aralin si Liwayway, gumawa ng tula tungkol sa kanyang sarili. Tatlong beses siyang nagsimula. Tatlong beses na tinanggal ang lahat.'
@@ -82,7 +83,7 @@ function App() {
         <section className="menu-panel">
           <img
             className="menu-title-image"
-            src="../Background/First.png"
+            src={titleImage}
             alt="Aklatang Luntian: Ang Hardin ng mga Taludtod"
           />
 
