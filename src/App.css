@@ -778,6 +778,13 @@
   font-family: 'Poppins', system-ui, sans-serif;
 }
 
+.story-term-highlight {
+  color: #da6c0e;
+  font-family: 'Cinzel', serif;
+  font-style: italic;
+  font-weight: 700;
+}
+
 .name-tag {
   display: inline-block;
   vertical-align: -0.1em;
