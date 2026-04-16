@@ -248,8 +248,8 @@
     max-width: 940px;
     max-height: min(40vh, 330px);
     min-height: 120px;
-    mix-blend-mode: normal;
-    clip-path: none;
+    mix-blend-mode: multiply;
+    clip-path: inset(0 0 2px 0);
     object-fit: contain;
   }
 
