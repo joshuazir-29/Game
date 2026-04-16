@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react'
 import './App.css'
+import settingIcon from '../Background/Icon/setting.png'
+import audioIcon from '../Background/Icon/audio.png'
+import menuIcon from '../Background/Icon/menu.png'
+import infoIcon from '../Background/Icon/info.png'
+import homeIcon from '../Background/Icon/home.png'
+import liwaywayImage from '../Background/Liwayway.png'
 
 const storyText =
   'May takdang-aralin si Liwayway, gumawa ng tula tungkol sa kanyang sarili. Tatlong beses siyang nagsimula. Tatlong beses na tinanggal ang lahat.'
@@ -15,14 +21,25 @@ function App() {
 
           <div className="story-controls" aria-label="Scene controls">
             <button type="button" aria-label="Settings" onClick={() => setScreen('settings')}>
-              &#9881;
+              <img className="control-icon" src={settingIcon} alt="" aria-hidden="true" />
             </button>
-            <button type="button" aria-label="Sound">&#9835;</button>
-            <button type="button" aria-label="Menu">&#9776;</button>
+            <button type="button" aria-label="Sound">
+              <img className="control-icon" src={audioIcon} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" aria-label="Menu">
+              <img className="control-icon" src={menuIcon} alt="" aria-hidden="true" />
+            </button>
+            <button type="button" aria-label="Info">
+              <img className="control-icon" src={infoIcon} alt="" aria-hidden="true" />
+            </button>
             <button type="button" aria-label="Home" onClick={() => setScreen('menu')}>
-              &#8962;
+              <img className="control-icon" src={homeIcon} alt="" aria-hidden="true" />
             </button>
           </div>
+
+          <section className="story-center" aria-label="Character art">
+            <img className="story-character" src={liwaywayImage} alt="Liwayway writing in her notebook" />
+          </section>
 
           <section className="story-box" aria-label="Story text">
             {storyText}
