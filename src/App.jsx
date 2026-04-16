@@ -11,10 +11,15 @@ import titleImage from '../Background/First.png'
 import nameTagImage from '../Background/Name Tag-transparent.png'
 import storyTwoNameTagImage from '../Background/nametag2.png'
 import pageTwoBackground from '../Background/Background2.jpg'
+import pageThreeBackground from '../Background/Background3.png'
+import pageFourBackground from '../Background/Background 4.png'
 import storyTwoBackground from '../Background/Story2.png'
 import storyLastBackground from '../Background/Storyy2.png'
 import storyFinalBackground from '../Background/Storryyy2.png'
 import buhawiImage from '../Background/Buhawi.png'
+import buhawiPostImage from '../Background/Buhawi post.png'
+import buhawiiImage from '../Background/Buhawii.png'
+import buhawiSmartImage from '../Background/Buyawi smart.png'
 import buhawiTagImage from '../Background/Buhawi Tag.png'
 import liwaImage from '../Background/Liwa.png'
 
@@ -56,10 +61,28 @@ const storySixText =
   'Maligayang pagdating, Liwayway. Ako ang Tagapag-alaga ng Aklatang Luntian. Ang hardin ay naghihingalo, limang ugat ng tula ang kailangang ibalik. Ikaw ang pinili.'
 const storySevenText =
   'Bakit ako? Hindi nga ako marunong sa tula.'
+const storyEightText = 'Kaya nga.'
+const storyNineText = {
+  introBefore: 'Lumipad si ',
+  introMiddle: '. Sumunod si ',
+  introAfter: ', wala na siyang ibang pagpipilian.',
+  body:
+    'Habang lumalakad sila, napansin ni Liwayway ang mga puno. Sa bawat sanga ay may nakasabit na punit-punit na papel, mga tulang walang buhay sapagkat nawalan ito ng kahulugan, mga taludtod na para bang kailangang alamin ang halaga at konteksto.',
+}
+
+const storyTenText =
+  'Mga tulang hindi naunawaan, at tulad ng iyong sinimulan, hindi rin sila nabuo. Ikaw ang mag-aayos at aalam ng kanilang saysay, isa-isa.'
+
+const storyElevenText = {
+  before: 'Lumiwanag ang isang papel at lumapit sa kamay ni ',
+  after: '. Nagsimula na.',
+}
 
 function App() {
   const [screen, setScreen] = useState('menu')
   const [storyPage, setStoryPage] = useState(1)
+  const [isMusicOn, setIsMusicOn] = useState(true)
+  const [isInfoOpen, setIsInfoOpen] = useState(false)
 
   const startStory = () => {
     setStoryPage(1)
@@ -67,19 +90,67 @@ function App() {
   }
 
   const goToNextPage = () => {
-    setStoryPage((page) => Math.min(page + 1, 7))
-  }
-
-  const goToPreviousPage = () => {
-    setStoryPage((page) => Math.max(page - 1, 1))
+    setStoryPage((page) => Math.min(page + 1, 11))
   }
 
   const openSettings = () => {
+    setIsInfoOpen(false)
     setScreen('settings')
   }
 
   const goHome = () => {
+    setIsInfoOpen(false)
     setScreen('menu')
+  }
+
+  const toggleInfo = () => {
+    setIsInfoOpen((state) => !state)
+  }
+
+  const toggleMusic = () => {
+    setIsMusicOn((state) => !state)
+  }
+
+  const renderGlobalControls = () => (
+    <div className="story-controls" aria-label="Scene controls" onClick={(event) => event.stopPropagation()}>
+      <button type="button" aria-label="Settings" onClick={openSettings}>
+        <img className="control-icon" src={settingIcon} alt="" aria-hidden="true" />
+      </button>
+      <button type="button" aria-label={isMusicOn ? 'Turn music off' : 'Turn music on'} onClick={toggleMusic}>
+        <img className="control-icon" src={audioIcon} alt="" aria-hidden="true" />
+      </button>
+      <button type="button" aria-label="Menu" onClick={goHome}>
+        <img className="control-icon" src={menuIcon} alt="" aria-hidden="true" />
+      </button>
+      <button type="button" aria-label="Info" onClick={toggleInfo}>
+        <img className="control-icon" src={infoIcon} alt="" aria-hidden="true" />
+      </button>
+      <button type="button" aria-label="Home" onClick={goHome}>
+        <img className="control-icon" src={homeIcon} alt="" aria-hidden="true" />
+      </button>
+    </div>
+  )
+
+  const renderInfoModal = () => {
+    if (!isInfoOpen) {
+      return null
+    }
+
+    return (
+      <section className="story-info-modal" aria-label="Story information" onClick={(event) => event.stopPropagation()}>
+        <h2>Info</h2>
+        {screen === 'play' ? (
+          <p>Tap/click the scene to go to the next page.</p>
+        ) : (
+          <p>Use Play from the menu to start the story.</p>
+        )}
+        <p>Use Settings to open game options.</p>
+        <p>Use Home or Menu to return to the main menu.</p>
+        <button type="button" onClick={() => setIsInfoOpen(false)}>
+          Close
+        </button>
+      </section>
+    )
   }
 
   const content = useMemo(() => {
@@ -88,37 +159,64 @@ function App() {
         <main
           className={`story-screen ${storyPage === 2 ? 'story-screen-two' : ''}`.trim()}
           aria-label="Story scene"
-          onClick={storyPage < 7 ? goToNextPage : undefined}
+          onClick={storyPage < 11 ? goToNextPage : undefined}
           style={
             storyPage >= 2
               ? {
-                  backgroundImage: `url(${storyPage >= 6 ? storyFinalBackground : storyPage >= 5 ? storyLastBackground : storyPage >= 4 ? storyTwoBackground : pageTwoBackground})`,
+                  backgroundImage: `url(${storyPage >= 11 ? pageFourBackground : storyPage >= 9 ? pageThreeBackground : storyPage >= 6 ? storyFinalBackground : storyPage >= 5 ? storyLastBackground : storyPage >= 4 ? storyTwoBackground : pageTwoBackground})`,
                 }
               : undefined
           }
         >
-          {(storyPage < 3 || storyPage === 6 || storyPage === 7) && (
-            <div className="story-controls" aria-label="Scene controls" onClick={(event) => event.stopPropagation()}>
-              <button type="button" aria-label="Settings" onClick={openSettings}>
-                <img className="control-icon" src={settingIcon} alt="" aria-hidden="true" />
-              </button>
-              <button type="button" aria-label="Sound">
-                <img className="control-icon" src={audioIcon} alt="" aria-hidden="true" />
-              </button>
-              <button type="button" aria-label="Menu">
-                <img className="control-icon" src={menuIcon} alt="" aria-hidden="true" />
-              </button>
-              <button type="button" aria-label="Info">
-                <img className="control-icon" src={infoIcon} alt="" aria-hidden="true" />
-              </button>
-              <button type="button" aria-label="Home" onClick={goHome}>
-                <img className="control-icon" src={homeIcon} alt="" aria-hidden="true" />
-              </button>
-            </div>
-          )}
+          {renderGlobalControls()}
+          {renderInfoModal()}
 
           {storyPage >= 2 ? (
-            storyPage === 7 ? (
+            storyPage === 11 ? (
+              <section className="story-eleven-layout" aria-label="Last story scene">
+                <section className="story-eleven-box" aria-label="Story text">
+                  <p>
+                    {storyElevenText.before}
+                    <span className="story-eleven-name-tag">
+                      <img src={nameTagImage} alt="Liwayway" />
+                    </span>{storyElevenText.after}
+                  </p>
+                </section>
+              </section>
+            ) : storyPage === 10 ? (
+              <section className="story-ten-layout" aria-label="Final story scene">
+                <img className="story-ten-character" src={buhawiPostImage} alt="Lolo Buhawi" />
+
+                <section className="story-ten-box" aria-label="Story text">
+                  <img className="story-ten-name-tag" src={buhawiTagImage} alt="Lolo Buhawi" />
+                  <p>{storyTenText}</p>
+                </section>
+              </section>
+            ) : storyPage === 9 ? (
+              <section className="story-nine-layout" aria-label="Story scene content">
+                <section className="story-nine-box" aria-label="Story text">
+                  <p className="story-nine-intro">
+                    {storyNineText.introBefore}
+                    <span className="story-nine-name-chip story-nine-name-chip-lolo">
+                      <img src={buhawiiImage} alt="Lolo Buhawi" />
+                    </span>{storyNineText.introMiddle}
+                    <span className="story-nine-name-chip story-nine-name-chip-liwayway">
+                      <img src={nameTagImage} alt="Liwayway" />
+                    </span>{storyNineText.introAfter}
+                  </p>
+                  <p className="story-nine-body">{storyNineText.body}</p>
+                </section>
+              </section>
+            ) : storyPage === 8 ? (
+              <section className="story-eight-layout" aria-label="Story scene content">
+                <img className="story-eight-character" src={buhawiSmartImage} alt="Lolo Buhawi" />
+
+                <section className="story-eight-box" aria-label="Story text">
+                  <img className="story-eight-name-tag" src={buhawiTagImage} alt="Lolo Buhawi" />
+                  <p>{storyEightText}</p>
+                </section>
+              </section>
+            ) : storyPage === 7 ? (
               <section className="story-seven-layout" aria-label="Story scene content">
                 <img className="story-seven-character" src={liwaImage} alt="Liwayway" />
 
@@ -186,12 +284,15 @@ function App() {
     if (screen === 'settings') {
       return (
         <main className="settings-screen" aria-label="Settings screen">
+          {renderGlobalControls()}
+          {renderInfoModal()}
+
           <section className="settings-panel">
             <h1>Settings</h1>
 
             <div className="setting-item">
               <span>Music</span>
-              <button type="button">On</button>
+              <button type="button" onClick={toggleMusic}>{isMusicOn ? 'On' : 'Off'}</button>
             </div>
 
             <div className="setting-item">
@@ -214,6 +315,9 @@ function App() {
 
     return (
       <main className="menu-screen" aria-label="Main menu">
+        {renderGlobalControls()}
+        {renderInfoModal()}
+
         <section className="menu-panel">
           <img
             className="menu-title-image"
@@ -235,7 +339,7 @@ function App() {
         </section>
       </main>
     )
-  }, [screen, storyPage])
+  }, [isInfoOpen, isMusicOn, screen, storyPage])
 
   return <>{content}</>
 }
