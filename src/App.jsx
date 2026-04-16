@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import settingIcon from '../Background/Icon/setting.png'
 import audioIcon from '../Background/Icon/audio.png'
@@ -186,6 +186,141 @@ const storyTwentySevenText = (
   </>
 )
 
+const stageTwoLeftPrompts = [
+  'Halikayo sa kulo ko, sa marupok na tahanan na pakiming nangungubli sa malilim sa sagingan.',
+  'Kapag aking naririnig sa pagbubukang-liwayway ang awit ng mga ibon ay nanagig sa isipan na ang mundoy hindi isang larangan ng luha\'l lumbay, ikaw\'y walang kabuluhan sa ibon ng aking bukid ni sa rosas ng hardin kong mabulaklak at tahimik.',
+  'Halikayo at pumasok sa hamak na aking bahay at masayang inoyo sa malinim na sagingan, ang bandy ko kahit pawid at marupok na kawayan ay may yamang ihahandog ang diwa ng aking bayan.',
+]
+
+const stageTwoChoices = [
+  {
+    id: 'two-lines',
+    text: 'Ang saknong ay binubuo ng dalawang taludtod. Tugmaang katinig na may mahinang tunog na may ayos na a-a',
+  },
+  {
+    id: 'pattern-abacd',
+    text: 'Ang tula ay may labing-anim na pantig sa limang taludtod may ayos na a-b-a-c-d.',
+  },
+  {
+    id: 'pattern-abbbb',
+    text: 'Ang tula ay may labing-anim na pantig sa limang taludtod. May tugmaang katinig na may mahinang tunog at ayos na a-b-b-b-b.',
+  },
+  {
+    id: 'tone-sad',
+    text: 'Ang tono ng tula ay malungkot at desperado, na nagpapahayag ng damdamin ng kawalan ng pag-asa sa buhay.',
+  },
+  {
+    id: 'tone-fear',
+    text: 'Ang tono ng tula ay puno ng takot at pangamba, na nagpapahayag ng damdamin ng pagkabalisa sa kapaligiran.',
+  },
+  {
+    id: 'tone-positive',
+    text: 'Ang tono ng tula ay mapagnilay at positibo, na nagpapahayag ng damdamin ng kasiyahan at kuntento sa payak na pamumuhay.',
+  },
+  { id: 'first-person', text: 'Ang tulang ito ay nasa unang panauhan' },
+  { id: 'second-person', text: 'Ang tulang ito ay nasa ikalawang panauhan' },
+  { id: 'third-person', text: 'Ang tulang ito ay nasa ikatlong panauhan' },
+  {
+    id: 'talinghaga-cultural',
+    text: 'Ang saknong ay may talinghagang hindi literal na yaman (pera o ari-arian), kundi tumutukoy sa yaman ng kultura, damdamin, at pagpapahalaga sa pagiging Pilipino.',
+  },
+  {
+    id: 'talinghaga-material',
+    text: 'Ang saknong ay may talinghagang tumutukoy sa kayamanang materyal tulad ng pera at ari-arian bilang sukatan ng tagumpay.',
+  },
+  {
+    id: 'talinghaga-power',
+    text: 'Ang saknong ay may talinghagang nagpapakita ng yaman bilang kapangyarihan laban sa kapwa.',
+  },
+]
+
+const stageTwoCorrectBySlot = [
+  'two-lines',
+  'pattern-abacd',
+  'pattern-abbbb',
+  'tone-positive',
+  'first-person',
+  'talinghaga-cultural',
+]
+const STAGE_TWO_BOTTOM_SLOT_COUNT = 3
+const STAGE_TWO_TOTAL_SLOT_COUNT = stageTwoLeftPrompts.length + STAGE_TWO_BOTTOM_SLOT_COUNT
+
+const stageThreeLeftPrompts = [
+  'Sa pugad ng isang pag-ibig na wagas, Nilang kang inakay na buto at balat; Ikaw\'y naruga\'t minahal nang ganap, Isip mo\'y nilinang, buto\'y pinaligás, Kaya\'t naging ibong matibay ang pakpak.',
+  'Nang maging ibon ka\'t sa pakpak na angkin Ay nalilipad na ang ibig liparin, Sa mga tagumpay lubos kang nalasing; Pugad na nilakha\'y tinangkang gibain, Ang nagpalang kamay ibig pang tukain.',
+  'Sa ganyang gawa mo\'y dapat matalas Na di naman laging iyo ang taas; Bagwis, pag nasira\'t nabalis sa lipad, Ikaw at ang madlang papuri\'t palakpak, Sa lupa\'y pasubsob na magsisilipak.',
+  'Sa pagkahibang mo sa lakas na angkin, Nagbigay ng lakas, disnua\'t inuring, Nilimot mo\'ng epa na iyang sawikaing: SA PINANGGALINGAN, ANG HINDI LUMINGON SA PAROROONAN\'Y DI MAKARARATING.',
+]
+
+const stageThreeChoices = [
+  { id: 'pattern-abcad', text: 'Ang saknong na ito ay mayroong tugmaang katinig na may malakas na tunog, na may ayos na a-b-c-a-d.' },
+  { id: 'pattern-aabaa', text: 'Ang saknong na ito ay mayroong tugmaang katinig na may mahinang tunog, na may ayos na a-a-b-a-a.' },
+  { id: 'bagwis-fall', text: 'Ang saknong na ito ay gumagamit ng pagkabali ng bagwis upang ipakita na ang labis na kapalaluan at panandaliang tagumpay ay maaaring humantong sa biglaang pagbagsak at pagkawala ng dangal.' },
+  { id: 'pattern-abbab', text: 'Ang saknong na ito ay mayroong tugmaang katinig na may mahinang tunog, na may ayos na a-b-b-a-b.' },
+  { id: 'stanza-five', text: 'Ang bawat saknong ng tula ay binubuo ng limang taludtod.' },
+  { id: 'stanza-six', text: 'Ang bawat saknong ng tula ay binubuo ng anim na taludtod.' },
+  { id: 'tone-sad-calm', text: 'Ang tono ng tula ay malungkot ngunit payapa, na nagpapahayag ng damdamin ng ganap na pagtanggap sa nakaraan at pagpapahalaga sa katahimikan hatid ng pag-iisa.' },
+  { id: 'tone-bright', text: 'Ang tono ng tula ay maliwanag at mapagtiwala, na nagpapahayag ng damdamin ng ganap na kapanatagan sa gitna ng paghihintay at pagpapahalaga sa bawat sinag ng bagong umaga.' },
+  { id: 'tone-convincing', text: 'Ang tono ng tula ay mapanghikayat at puno ng pag-asa, na nagpapahayag ng damdamin ng matatag na determinasyon na magpatuloy sa buhay sa kabila ng anumang pagsubok.' },
+  { id: 'first-person-stage3', text: 'Ang tulang ito ay nasa unang panauhan.' },
+  { id: 'second-person-stage3', text: 'Ang tulang ito ay nasa ikalawang panauhan.' },
+  { id: 'third-person-stage3', text: 'Ang tulang ito ay nasa ikatlong panauhan.' },
+  { id: 'meter-11', text: 'Ang mga saknong na ito ay mayroong tig-11 na sukat.' },
+  { id: 'meter-12', text: 'Ang mga saknong na ito ay mayroong tig-12 na sukat.' },
+  { id: 'meter-13', text: 'Ang mga saknong na ito ay mayroong tig-13 na sukat.' },
+  { id: 'stanza-four-lines', text: 'Ang bawat saknong ng tula ay binubuo ng apat na taludtod.' },
+]
+
+const stageThreeCorrectBySlot = [
+  'pattern-abcad',
+  'pattern-aabaa',
+  'bagwis-fall',
+  'pattern-abbab',
+  'stanza-five',
+  'tone-convincing',
+  'second-person-stage3',
+]
+
+const STAGE_THREE_BOTTOM_SLOT_COUNT = 3
+const STAGE_THREE_TOTAL_SLOT_COUNT = stageThreeLeftPrompts.length + STAGE_THREE_BOTTOM_SLOT_COUNT
+const stageFourLeftPrompts = [
+  'Isang basong puting sa langis ay tigib Ang ilaw ng aming maliit na altar;',
+  'Sa hihip ng hangi\'y dumilat-pumikit Ang ningas na munting basong liwan.',
+  'Minsang isang gabi na lubhang pusikit Ilaw naming ito ay biglang namatay',
+  'Aywan ko kung isa lamang panaginip Ang tinig na noo\'y aking napakinggan',
+  'Napabangon ako\'t noon ay nagkiskis Ng posporo... ilaw\'y aking sinindihan.',
+  'Sa sinag ng ilaw na biglang gumuhit Ang mukha ng Kristo\'y aking natanawan -',
+  '“Kung ang narinig ko\'y ang banal Mong tinig... Nanalang akong kami\'y iyong mahal!”',
+]
+
+const stageFourMiddleSlots = ['', 'SAGOT', 'SAGOT', '', '', 'SAGOT', '']
+
+const stageFourRightChoices = [
+  'Ang mga saknong ay gumamit ng Ikalawang Panauhan na Persona',
+  'Ang mga saknong ay gumamit ng Unang Panauhan na Persona',
+  'Ang mga saknong ay gumamit ng Ikatlong Panauhan na Persona',
+  'Ang mga saknong na ito ay may tig-12 na sukat',
+  'Ang mga saknong na ito ay may tig-11 na sukat',
+  'Ang mga saknong na ito ay may tig-10 na sukat',
+  'Ang bawat saknong ng tula ay may quatrain na taludtod',
+  'Ang bawat saknong ng tula ay may tercet na taludtod',
+  'Ang bawat saknong ng tula ay may couplet na taludtod',
+  'Karikitan Ang saknong na ito ay may ayos na a-b. Ito ay nagpapakita ng karikitan at imahen sa masining na paglalarawan ng ningas ng ilawan.',
+  'Tono at Damdamin Ang saknong na ito ay may ayos na a-b. Ito ay nagpapahayag ng tono at damdamin na may lungkot at pangamba.',
+  '',
+  '',
+  'Karikitan Ang saknong na ito ay may ayos na a-b. Ito ay nagpapakita ng mahusay na paggamit ng mga salitang naglalarawan sa mukha ni Kristo.',
+]
+const stageFourLeftSlotRows = [1, 2, 5]
+const STAGE_FOUR_BOTTOM_SLOT_COUNT = 3
+const STAGE_FOUR_TOTAL_SLOT_COUNT = stageFourLeftSlotRows.length + STAGE_FOUR_BOTTOM_SLOT_COUNT
+const stageFourChoices = stageFourRightChoices
+  .filter((text) => text && text.trim().length > 0)
+  .map((text, index) => ({ id: `stage4-choice-${index + 1}`, text }))
+const storyThirtyTwoTextTop = 'Pagtapos nito\'y unti-unti nang bumalik ang kaniyang malinaw at maliwanag na paningin, ngunit hindi ibig sabihin nito\'y nakaalis na siya sa pagkakasakop ng hamog, kundi dahil ay natutuhan na niyang tumingin sa mga salitang lagpas sa panlabas na anyo nito.'
+const storyThirtyTwoTextBottom = 'Habang palalim nang palalim ang kaniyang pang-unawa at paglalakbay sa loob ng hamog na ito ay muling nahati ang daanan-may paparating pang pagsubok.'
+const GAME_PROGRESS_STORAGE_KEY = 'aklatang-luntian-progress-v1'
+
 function App() {
   const [screen, setScreen] = useState('menu')
   const [storyPage, setStoryPage] = useState(1)
@@ -194,11 +329,30 @@ function App() {
   const [unlockedLevels, setUnlockedLevels] = useState(1)
   const [isQuizSolved, setIsQuizSolved] = useState(false)
   const [quizStep, setQuizStep] = useState(0)
+  const [stageTwoSlots, setStageTwoSlots] = useState(Array(STAGE_TWO_TOTAL_SLOT_COUNT).fill(null))
+  const [stageTwoSelectedChoiceId, setStageTwoSelectedChoiceId] = useState(null)
+  const [isStageTwoCompleteNoticeOpen, setIsStageTwoCompleteNoticeOpen] = useState(false)
+  const [stageThreeSlots, setStageThreeSlots] = useState(Array(STAGE_THREE_TOTAL_SLOT_COUNT).fill(null))
+  const [stageThreeSelectedChoiceId, setStageThreeSelectedChoiceId] = useState(null)
+  const [isStageThreeCompleteNoticeOpen, setIsStageThreeCompleteNoticeOpen] = useState(false)
+  const [stageFourSlots, setStageFourSlots] = useState(Array(STAGE_FOUR_TOTAL_SLOT_COUNT).fill(null))
+  const [stageFourSelectedChoiceId, setStageFourSelectedChoiceId] = useState(null)
+  const [isStageFourCompleteNoticeOpen, setIsStageFourCompleteNoticeOpen] = useState(false)
+  const [hasLoadedProgress, setHasLoadedProgress] = useState(false)
 
   const startStory = () => {
     setStoryPage(1)
     setIsQuizSolved(false)
     setQuizStep(0)
+    setStageTwoSlots(Array(STAGE_TWO_TOTAL_SLOT_COUNT).fill(null))
+    setStageTwoSelectedChoiceId(null)
+    setIsStageTwoCompleteNoticeOpen(false)
+    setStageThreeSlots(Array(STAGE_THREE_TOTAL_SLOT_COUNT).fill(null))
+    setStageThreeSelectedChoiceId(null)
+    setIsStageThreeCompleteNoticeOpen(false)
+    setStageFourSlots(Array(STAGE_FOUR_TOTAL_SLOT_COUNT).fill(null))
+    setStageFourSelectedChoiceId(null)
+    setIsStageFourCompleteNoticeOpen(false)
     setScreen('play')
   }
 
@@ -208,7 +362,11 @@ function App() {
 
   const openSettings = () => {
     setIsInfoOpen(false)
-    setScreen('settings')
+    if (screen === 'play') {
+      setStoryPage((page) => Math.max(page - 1, 1))
+      return
+    }
+    setScreen('menu')
   }
 
   const goHome = () => {
@@ -308,9 +466,238 @@ function App() {
     }
   }
 
+  const placeStageTwoChoice = (slotIndex, choiceId) => {
+    setStageTwoSlots((prev) => {
+      const next = prev.map((id) => (id === choiceId ? null : id))
+      next[slotIndex] = choiceId
+      return next
+    })
+    setStageTwoSelectedChoiceId(null)
+  }
+
+  const clearStageTwoSlot = (slotIndex) => {
+    setStageTwoSlots((prev) => {
+      const next = [...prev]
+      next[slotIndex] = null
+      return next
+    })
+  }
+
+  const placeStageThreeChoice = (slotIndex, choiceId) => {
+    setStageThreeSlots((prev) => {
+      const next = prev.map((id) => (id === choiceId ? null : id))
+      next[slotIndex] = choiceId
+      return next
+    })
+    setStageThreeSelectedChoiceId(null)
+  }
+
+  const clearStageThreeSlot = (slotIndex) => {
+    setStageThreeSlots((prev) => {
+      const next = [...prev]
+      next[slotIndex] = null
+      return next
+    })
+  }
+
+  const placeStageFourChoice = (slotIndex, choiceId) => {
+    setStageFourSlots((prev) => {
+      const next = prev.map((id) => (id === choiceId ? null : id))
+      next[slotIndex] = choiceId
+      return next
+    })
+    setStageFourSelectedChoiceId(null)
+  }
+
+  const clearStageFourSlot = (slotIndex) => {
+    setStageFourSlots((prev) => {
+      const next = [...prev]
+      next[slotIndex] = null
+      return next
+    })
+  }
+
+  const stageTwoAvailableChoices = stageTwoChoices.filter((choice) => !stageTwoSlots.includes(choice.id))
+  const stageTwoPlacedCorrect = stageTwoSlots.reduce(
+    (count, choiceId, index) => (choiceId && choiceId === stageTwoCorrectBySlot[index] ? count + 1 : count),
+    0,
+  )
+  const isStageTwoSolved = stageTwoPlacedCorrect === stageTwoCorrectBySlot.length
+  const stageThreeAvailableChoices = stageThreeChoices.filter((choice) => !stageThreeSlots.includes(choice.id))
+  const stageThreePlacedCorrect = stageThreeSlots.reduce(
+    (count, choiceId, index) => (choiceId && choiceId === stageThreeCorrectBySlot[index] ? count + 1 : count),
+    0,
+  )
+  const isStageThreeSolved = stageThreePlacedCorrect === stageThreeCorrectBySlot.length
+  const stageFourAvailableChoices = stageFourChoices.filter((choice) => !stageFourSlots.includes(choice.id))
+  const stageFourPlacedCount = stageFourSlots.filter(Boolean).length
+  const isStageFourSolved = stageFourPlacedCount === STAGE_FOUR_TOTAL_SLOT_COUNT
+
+  const proceedToStageThree = () => {
+    setStageTwoSelectedChoiceId(null)
+    setIsStageTwoCompleteNoticeOpen(false)
+    setStoryPage(29)
+  }
+
+  const proceedToStageCompletePage = () => {
+    setStageThreeSelectedChoiceId(null)
+    setIsStageThreeCompleteNoticeOpen(false)
+    setStoryPage(30)
+  }
+
+  const proceedToStageFive = () => {
+    setStageFourSelectedChoiceId(null)
+    setIsStageFourCompleteNoticeOpen(false)
+    setStoryPage(32)
+  }
+
+  useEffect(() => {
+    if (screen === 'play' && storyPage === 28 && isStageTwoSolved) {
+      if (isStageTwoCompleteNoticeOpen) {
+        return
+      }
+
+      setIsStageTwoCompleteNoticeOpen(true)
+      const transitionTimer = setTimeout(() => {
+        proceedToStageThree()
+      }, 1600)
+
+      return () => clearTimeout(transitionTimer)
+    }
+
+    if (!isStageTwoSolved && isStageTwoCompleteNoticeOpen) {
+      setIsStageTwoCompleteNoticeOpen(false)
+    }
+  }, [isStageTwoCompleteNoticeOpen, isStageTwoSolved, screen, storyPage])
+
+  useEffect(() => {
+    if (screen === 'play' && storyPage === 29 && isStageThreeSolved) {
+      if (isStageThreeCompleteNoticeOpen) {
+        return
+      }
+
+      setIsStageThreeCompleteNoticeOpen(true)
+      const transitionTimer = setTimeout(() => {
+        proceedToStageCompletePage()
+      }, 1600)
+
+      return () => clearTimeout(transitionTimer)
+    }
+
+    if (!isStageThreeSolved && isStageThreeCompleteNoticeOpen) {
+      setIsStageThreeCompleteNoticeOpen(false)
+    }
+  }, [isStageThreeCompleteNoticeOpen, isStageThreeSolved, screen, storyPage])
+
+  useEffect(() => {
+    if (screen === 'play' && storyPage === 31 && isStageFourSolved) {
+      if (!isStageFourCompleteNoticeOpen) {
+        setIsStageFourCompleteNoticeOpen(true)
+      }
+      return
+    }
+
+    if (!isStageFourSolved && isStageFourCompleteNoticeOpen) {
+      setIsStageFourCompleteNoticeOpen(false)
+    }
+  }, [isStageFourCompleteNoticeOpen, isStageFourSolved, screen, storyPage])
+
+  useEffect(() => {
+    try {
+      const rawState = localStorage.getItem(GAME_PROGRESS_STORAGE_KEY)
+      if (!rawState) {
+        setHasLoadedProgress(true)
+        return
+      }
+
+      const savedState = JSON.parse(rawState)
+      if (savedState && typeof savedState === 'object') {
+        if (savedState.screen === 'play' || savedState.screen === 'menu') {
+          setScreen(savedState.screen)
+        }
+
+        if (Number.isInteger(savedState.storyPage)) {
+          setStoryPage(Math.min(Math.max(savedState.storyPage, 1), 32))
+        }
+
+        if (typeof savedState.isMusicOn === 'boolean') {
+          setIsMusicOn(savedState.isMusicOn)
+        }
+
+        if (typeof savedState.isInfoOpen === 'boolean') {
+          setIsInfoOpen(savedState.isInfoOpen)
+        }
+
+        if (Number.isInteger(savedState.unlockedLevels)) {
+          setUnlockedLevels(Math.min(Math.max(savedState.unlockedLevels, 1), TOTAL_LEVELS))
+        }
+
+        if (typeof savedState.isQuizSolved === 'boolean') {
+          setIsQuizSolved(savedState.isQuizSolved)
+        }
+
+        if (Number.isInteger(savedState.quizStep)) {
+          setQuizStep(Math.min(Math.max(savedState.quizStep, 0), 4))
+        }
+
+        if (Array.isArray(savedState.stageTwoSlots) && savedState.stageTwoSlots.length === STAGE_TWO_TOTAL_SLOT_COUNT) {
+          setStageTwoSlots(savedState.stageTwoSlots.map((item) => (typeof item === 'string' ? item : null)))
+        }
+
+        if (Array.isArray(savedState.stageThreeSlots) && savedState.stageThreeSlots.length === STAGE_THREE_TOTAL_SLOT_COUNT) {
+          setStageThreeSlots(savedState.stageThreeSlots.map((item) => (typeof item === 'string' ? item : null)))
+        }
+
+        if (Array.isArray(savedState.stageFourSlots) && savedState.stageFourSlots.length === STAGE_FOUR_TOTAL_SLOT_COUNT) {
+          setStageFourSlots(savedState.stageFourSlots.map((item) => (typeof item === 'string' ? item : null)))
+        }
+      }
+    } catch {
+      // Ignore corrupt local state and continue with defaults.
+    } finally {
+      setHasLoadedProgress(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hasLoadedProgress) {
+      return
+    }
+
+    const progressState = {
+      screen,
+      storyPage,
+      isMusicOn,
+      isInfoOpen,
+      unlockedLevels,
+      isQuizSolved,
+      quizStep,
+      stageTwoSlots,
+      stageThreeSlots,
+      stageFourSlots,
+    }
+
+    try {
+      localStorage.setItem(GAME_PROGRESS_STORAGE_KEY, JSON.stringify(progressState))
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [
+    hasLoadedProgress,
+    isInfoOpen,
+    isMusicOn,
+    isQuizSolved,
+    quizStep,
+    screen,
+    stageThreeSlots,
+    stageTwoSlots,
+    storyPage,
+    unlockedLevels,
+  ])
+
   const renderGlobalControls = () => (
     <div className="story-controls" aria-label="Scene controls" onClick={(event) => event.stopPropagation()}>
-      <button type="button" aria-label="Settings" onClick={openSettings}>
+      <button type="button" aria-label="Back" onClick={openSettings}>
         <img className="control-icon" src={settingIcon} alt="" aria-hidden="true" />
       </button>
       <button type="button" aria-label={isMusicOn ? 'Turn music off' : 'Turn music on'} onClick={toggleMusic}>
@@ -341,7 +728,7 @@ function App() {
         ) : (
           <p>Use Play from the menu to start the story.</p>
         )}
-        <p>Use Settings to open game options.</p>
+        <p>Use Back to return to the previous page.</p>
         <p>Use Home or Menu to return to the main menu.</p>
         <button type="button" onClick={() => setIsInfoOpen(false)}>
           Close
@@ -1242,8 +1629,641 @@ function App() {
             if (storyPage === 28) {
               return (
                 <section
-                  className="story-stage-two-brief"
-                  aria-label="Stage II briefing"
+                  className="story-stage-two-game"
+                  aria-label="Stage II game board"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    minHeight: '100vh',
+                    backgroundImage: `linear-gradient(rgba(34, 32, 43, 0.28), rgba(34, 32, 43, 0.28)), url(${scaryBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '12px 10px 18px'
+                  }}
+                >
+                  <div className="page-indicator">📖 Page 28 / 28</div>
+
+                  <h1 style={{
+                    margin: '6px 0 12px',
+                    color: '#111',
+                    fontSize: 'clamp(34px, 4.2vw, 60px)',
+                    fontWeight: '800',
+                    letterSpacing: '0.02em'
+                  }}>STAGE II</h1>
+
+                  <section
+                    aria-label="Stage II puzzle grid"
+                    style={{
+                      width: 'min(98%, 1820px)',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '10px',
+                      marginBottom: '12px'
+                    }}
+                  >
+                    <section
+                      style={{
+                        border: '2px solid rgba(0, 0, 0, 0.9)',
+                        backgroundColor: 'rgba(208, 220, 232, 0.18)',
+                        padding: '6px',
+                        display: 'grid',
+                        gap: '6px'
+                      }}
+                    >
+                      {stageTwoLeftPrompts.map((leftText, index) => (
+                        <div key={`left-row-${index}`} style={{ display: 'grid', gridTemplateColumns: '1fr minmax(100px, 130px)', gap: '6px' }}>
+                          <div
+                            style={{
+                              border: '2px solid rgba(0, 0, 0, 0.9)',
+                              backgroundColor: 'rgba(212, 228, 241, 0.25)',
+                              minHeight: '72px',
+                              padding: '8px 10px',
+                              textAlign: 'center',
+                              fontSize: 'clamp(10px, 1vw, 17px)',
+                              lineHeight: '1.3',
+                              fontWeight: '600',
+                              color: '#14171a',
+                              display: 'grid',
+                              placeItems: 'center'
+                            }}
+                          >
+                            {leftText}
+                          </div>
+                          <div
+                            onDragOver={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              const choiceId = event.dataTransfer.getData('text/stage-two-choice-id')
+                              if (choiceId) {
+                                placeStageTwoChoice(index, choiceId)
+                              }
+                            }}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              if (stageTwoSelectedChoiceId) {
+                                placeStageTwoChoice(index, stageTwoSelectedChoiceId)
+                                return
+                              }
+                              if (stageTwoSlots[index]) {
+                                clearStageTwoSlot(index)
+                              }
+                            }}
+                            style={{
+                              border: '2px solid rgba(0, 0, 0, 0.9)',
+                              backgroundColor: 'rgba(180, 239, 236, 0.35)',
+                              minHeight: '72px',
+                              fontSize: stageTwoSlots[index] ? 'clamp(10px, 0.95vw, 15px)' : 'clamp(16px, 1.55vw, 30px)',
+                              lineHeight: stageTwoSlots[index] ? '1.25' : '1.1',
+                              fontWeight: stageTwoSlots[index] ? '600' : '800',
+                              color: '#111',
+                              cursor: 'pointer',
+                              display: 'grid',
+                              placeItems: 'center',
+                              textAlign: 'center',
+                              padding: '8px',
+                              overflowWrap: 'anywhere',
+                              wordBreak: 'break-word'
+                            }}
+                          >
+                            {stageTwoSlots[index]
+                              ? stageTwoChoices.find((choice) => choice.id === stageTwoSlots[index])?.text
+                              : 'SAGOT'}
+                          </div>
+                        </div>
+                      ))}
+                    </section>
+
+                    <section
+                      style={{
+                        border: '2px solid rgba(0, 0, 0, 0.9)',
+                        backgroundColor: 'rgba(208, 220, 232, 0.18)',
+                        padding: '6px',
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '6px'
+                      }}
+                    >
+                      {stageTwoAvailableChoices.map((choice, index) => (
+                        <button
+                          key={choice.id}
+                          type="button"
+                          draggable
+                          onDragStart={(event) => {
+                            event.stopPropagation()
+                            event.dataTransfer.setData('text/stage-two-choice-id', choice.id)
+                          }}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setStageTwoSelectedChoiceId(choice.id)
+                          }}
+                          style={{
+                            border: '2px solid rgba(0, 0, 0, 0.9)',
+                            backgroundColor:
+                              stageTwoSelectedChoiceId === choice.id
+                                ? 'rgba(255, 238, 145, 0.68)'
+                                : index % 2 === 0
+                                  ? 'rgba(177, 245, 245, 0.35)'
+                                  : 'rgba(212, 228, 241, 0.25)',
+                            minHeight: '72px',
+                            padding: '8px 10px',
+                            textAlign: 'center',
+                            fontSize: 'clamp(10px, 0.95vw, 16px)',
+                            lineHeight: '1.25',
+                            fontWeight: '600',
+                            color: '#14171a',
+                            cursor: 'grab'
+                          }}
+                        >
+                          {choice.text}
+                        </button>
+                      ))}
+                    </section>
+                  </section>
+
+                  <section
+                    aria-label="Bottom answer bins"
+                    style={{
+                      width: 'min(98%, 1820px)',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                      gap: '10px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    {Array.from({ length: STAGE_TWO_BOTTOM_SLOT_COUNT }).map((_, slot) => {
+                      const slotIndex = stageTwoLeftPrompts.length + slot
+                      return (
+                      <div
+                        key={`bottom-visual-slot-${slot}`}
+                        onDragOver={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          const choiceId = event.dataTransfer.getData('text/stage-two-choice-id')
+                          if (choiceId) {
+                            placeStageTwoChoice(slotIndex, choiceId)
+                          }
+                        }}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          if (stageTwoSelectedChoiceId) {
+                            placeStageTwoChoice(slotIndex, stageTwoSelectedChoiceId)
+                            return
+                          }
+                          if (stageTwoSlots[slotIndex]) {
+                            clearStageTwoSlot(slotIndex)
+                          }
+                        }}
+                        style={{
+                          border: '2px solid rgba(0, 0, 0, 0.9)',
+                          backgroundColor: 'rgba(212, 228, 241, 0.25)',
+                          minHeight: '74px',
+                          display: 'grid',
+                          placeItems: 'center',
+                          textAlign: 'center',
+                          color: '#111',
+                          fontSize: stageTwoSlots[slotIndex] ? 'clamp(10px, 0.95vw, 16px)' : 'clamp(20px, 2vw, 34px)',
+                          fontWeight: stageTwoSlots[slotIndex] ? '600' : '700',
+                          lineHeight: stageTwoSlots[slotIndex] ? '1.25' : '1.1',
+                          padding: '8px 10px',
+                          overflowWrap: 'anywhere',
+                          wordBreak: 'break-word',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {stageTwoSlots[slotIndex]
+                          ? stageTwoChoices.find((choice) => choice.id === stageTwoSlots[slotIndex])?.text
+                          : 'Sagot'}
+                      </div>
+                    )})}
+                  </section>
+
+                  <p
+                    style={{
+                      margin: '0 0 6px',
+                      color: '#14171a',
+                      fontWeight: '700',
+                      fontSize: 'clamp(11px, 1vw, 16px)'
+                    }}
+                  >
+                    Tip: Sa mobile, i-tap muna ang choice sa kanan, tapos i-tap ang kahong SAGOT sa kaliwa.
+                  </p>
+
+                  <p
+                    style={{
+                      margin: '8px 0 0',
+                      color: '#14171a',
+                      fontWeight: '700',
+                      fontSize: 'clamp(12px, 1.1vw, 18px)'
+                    }}
+                  >
+                    Tamang puwesto: {stageTwoPlacedCorrect} / {stageTwoCorrectBySlot.length}
+                  </p>
+
+                  {isStageTwoCompleteNoticeOpen && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        proceedToStageThree()
+                      }}
+                      style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(10, 18, 28, 0.58)',
+                        display: 'grid',
+                        placeItems: 'center',
+                        padding: '18px',
+                        zIndex: 30,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <section
+                        style={{
+                          width: 'min(92%, 760px)',
+                          border: '2px solid rgba(0, 0, 0, 0.92)',
+                          backgroundColor: 'rgba(238, 252, 236, 0.95)',
+                          borderRadius: '14px',
+                          padding: '24px 22px',
+                          textAlign: 'center',
+                          color: '#102014',
+                          boxShadow: '0 10px 24px rgba(0, 0, 0, 0.25)'
+                        }}
+                      >
+                        <h2
+                          style={{
+                            margin: '0 0 10px',
+                            fontSize: 'clamp(24px, 2.4vw, 38px)',
+                            fontWeight: '800',
+                            letterSpacing: '0.02em'
+                          }}
+                        >
+                          Congratulations!
+                        </h2>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: 'clamp(16px, 1.6vw, 24px)',
+                            fontWeight: '600',
+                            lineHeight: '1.35'
+                          }}
+                        >
+                          Kumpleto at tama ang sagot mo. Lilipat na sa susunod na level.
+                        </p>
+                        <p
+                          style={{
+                            margin: '12px 0 0',
+                            fontSize: 'clamp(13px, 1.2vw, 18px)',
+                            fontWeight: '700',
+                            opacity: 0.86
+                          }}
+                        >
+                          I-click ang screen para magpatuloy.
+                        </p>
+                      </section>
+                    </div>
+                  )}
+                </section>
+              )
+            }
+
+            if (storyPage === 29) {
+              return (
+                <section
+                  className="story-stage-three-game"
+                  aria-label="Stage II level two game"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    minHeight: '100vh',
+                    backgroundImage: `linear-gradient(rgba(34, 32, 43, 0.28), rgba(34, 32, 43, 0.28)), url(${scaryBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '12px 10px 18px'
+                  }}
+                >
+                  <div className="page-indicator">📖 Page 29 / 30</div>
+                  <h1 style={{
+                    margin: '6px 0 12px',
+                    color: '#111',
+                    fontSize: 'clamp(34px, 4.2vw, 60px)',
+                    fontWeight: '800',
+                    letterSpacing: '0.02em'
+                  }}>STAGE II</h1>
+
+                  <section
+                    aria-label="Stage II level 2 puzzle grid"
+                    style={{
+                      width: 'min(98%, 1820px)',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '10px',
+                      marginBottom: '12px'
+                    }}
+                  >
+                    <section
+                      style={{
+                        border: '2px solid rgba(0, 0, 0, 0.9)',
+                        backgroundColor: 'rgba(208, 220, 232, 0.18)',
+                        padding: '6px',
+                        display: 'grid',
+                        gap: '6px'
+                      }}
+                    >
+                      {stageThreeLeftPrompts.map((leftText, index) => (
+                        <div key={`stage3-left-row-${index}`} style={{ display: 'grid', gridTemplateColumns: '1fr minmax(100px, 130px)', gap: '6px' }}>
+                          <div
+                            style={{
+                              border: '2px solid rgba(0, 0, 0, 0.9)',
+                              backgroundColor: 'rgba(212, 228, 241, 0.25)',
+                              minHeight: '72px',
+                              padding: '8px 10px',
+                              textAlign: 'center',
+                              fontSize: 'clamp(10px, 1vw, 17px)',
+                              lineHeight: '1.3',
+                              fontWeight: '600',
+                              color: '#14171a',
+                              display: 'grid',
+                              placeItems: 'center'
+                            }}
+                          >
+                            {leftText}
+                          </div>
+                          <div
+                            onDragOver={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation()
+                              const choiceId =
+                                event.dataTransfer.getData('text/stage-three-choice-id') ||
+                                event.dataTransfer.getData('text/plain') ||
+                                stageThreeSelectedChoiceId
+                              if (choiceId) {
+                                placeStageThreeChoice(index, choiceId)
+                              }
+                            }}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              if (stageThreeSelectedChoiceId) {
+                                placeStageThreeChoice(index, stageThreeSelectedChoiceId)
+                                return
+                              }
+                              if (stageThreeSlots[index]) {
+                                clearStageThreeSlot(index)
+                              }
+                            }}
+                            style={{
+                              border: '2px solid rgba(0, 0, 0, 0.9)',
+                              backgroundColor: 'rgba(180, 239, 236, 0.35)',
+                              minHeight: '72px',
+                              fontSize: stageThreeSlots[index] ? 'clamp(10px, 0.95vw, 15px)' : 'clamp(16px, 1.55vw, 30px)',
+                              lineHeight: stageThreeSlots[index] ? '1.25' : '1.1',
+                              fontWeight: stageThreeSlots[index] ? '600' : '800',
+                              color: '#111',
+                              cursor: 'pointer',
+                              display: 'grid',
+                              placeItems: 'center',
+                              textAlign: 'center',
+                              padding: '8px',
+                              overflowWrap: 'anywhere',
+                              wordBreak: 'break-word'
+                            }}
+                          >
+                            {stageThreeSlots[index]
+                              ? stageThreeChoices.find((choice) => choice.id === stageThreeSlots[index])?.text
+                              : 'SAGOT'}
+                          </div>
+                        </div>
+                      ))}
+                    </section>
+
+                    <section
+                      style={{
+                        border: '2px solid rgba(0, 0, 0, 0.9)',
+                        backgroundColor: 'rgba(208, 220, 232, 0.18)',
+                        padding: '6px',
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '6px'
+                      }}
+                    >
+                      {stageThreeAvailableChoices.map((choice, index) => (
+                        <button
+                          key={choice.id}
+                          type="button"
+                          draggable
+                          onDragStart={(event) => {
+                            event.stopPropagation()
+                            event.dataTransfer.setData('text/stage-three-choice-id', choice.id)
+                            event.dataTransfer.setData('text/plain', choice.id)
+                          }}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setStageThreeSelectedChoiceId(choice.id)
+                          }}
+                          style={{
+                            border: '2px solid rgba(0, 0, 0, 0.9)',
+                            backgroundColor:
+                              stageThreeSelectedChoiceId === choice.id
+                                ? 'rgba(255, 238, 145, 0.68)'
+                                : index % 2 === 0
+                                  ? 'rgba(177, 245, 245, 0.35)'
+                                  : 'rgba(212, 228, 241, 0.25)',
+                            minHeight: '72px',
+                            padding: '8px 10px',
+                            textAlign: 'center',
+                            fontSize: 'clamp(10px, 0.95vw, 16px)',
+                            lineHeight: '1.25',
+                            fontWeight: '600',
+                            color: '#14171a',
+                            cursor: 'grab'
+                          }}
+                        >
+                          {choice.text}
+                        </button>
+                      ))}
+                    </section>
+                  </section>
+
+                  <section
+                    aria-label="Stage II level 2 bottom answer bins"
+                    style={{
+                      width: 'min(98%, 1820px)',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                      gap: '10px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    {Array.from({ length: STAGE_THREE_BOTTOM_SLOT_COUNT }).map((_, slot) => {
+                      const slotIndex = stageThreeLeftPrompts.length + slot
+                      return (
+                        <div
+                          key={`stage3-bottom-slot-${slot}`}
+                          onDragOver={(event) => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                          }}
+                          onDrop={(event) => {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            const choiceId =
+                              event.dataTransfer.getData('text/stage-three-choice-id') ||
+                              event.dataTransfer.getData('text/plain') ||
+                              stageThreeSelectedChoiceId
+                            if (choiceId) {
+                              placeStageThreeChoice(slotIndex, choiceId)
+                            }
+                          }}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            if (stageThreeSelectedChoiceId) {
+                              placeStageThreeChoice(slotIndex, stageThreeSelectedChoiceId)
+                              return
+                            }
+                            if (stageThreeSlots[slotIndex]) {
+                              clearStageThreeSlot(slotIndex)
+                            }
+                          }}
+                          style={{
+                            border: '2px solid rgba(0, 0, 0, 0.92)',
+                            backgroundColor: 'rgba(226, 233, 241, 0.16)',
+                            minHeight: '76px',
+                            display: 'grid',
+                            placeItems: 'center',
+                            textAlign: 'center',
+                            color: '#111',
+                            fontSize: stageThreeSlots[slotIndex] ? 'clamp(10px, 0.95vw, 16px)' : 'clamp(30px, 2.3vw, 42px)',
+                            fontWeight: stageThreeSlots[slotIndex] ? '600' : '700',
+                            lineHeight: stageThreeSlots[slotIndex] ? '1.25' : '1',
+                            padding: '8px 10px',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {stageThreeSlots[slotIndex]
+                            ? stageThreeChoices.find((choice) => choice.id === stageThreeSlots[slotIndex])?.text
+                            : 'Sagot'}
+                        </div>
+                      )
+                    })}
+                  </section>
+
+                  <p
+                    style={{
+                      margin: '0 0 6px',
+                      color: '#14171a',
+                      fontWeight: '700',
+                      fontSize: 'clamp(11px, 1vw, 16px)'
+                    }}
+                  >
+                    Tip: Sa mobile, i-tap muna ang choice sa kanan, tapos i-tap ang kahong SAGOT sa kaliwa o ibaba.
+                  </p>
+
+                  <p
+                    style={{
+                      margin: '8px 0 0',
+                      color: '#14171a',
+                      fontWeight: '700',
+                      fontSize: 'clamp(12px, 1.1vw, 18px)'
+                    }}
+                  >
+                    Tamang puwesto: {stageThreePlacedCorrect} / {stageThreeCorrectBySlot.length}
+                  </p>
+
+                  {isStageThreeCompleteNoticeOpen && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        proceedToStageCompletePage()
+                      }}
+                      style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(10, 18, 28, 0.58)',
+                        display: 'grid',
+                        placeItems: 'center',
+                        padding: '18px',
+                        zIndex: 30,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <section
+                        style={{
+                          width: 'min(92%, 760px)',
+                          border: '2px solid rgba(0, 0, 0, 0.92)',
+                          backgroundColor: 'rgba(238, 252, 236, 0.95)',
+                          borderRadius: '14px',
+                          padding: '24px 22px',
+                          textAlign: 'center',
+                          color: '#102014',
+                          boxShadow: '0 10px 24px rgba(0, 0, 0, 0.25)'
+                        }}
+                      >
+                        <h2
+                          style={{
+                            margin: '0 0 10px',
+                            fontSize: 'clamp(24px, 2.4vw, 38px)',
+                            fontWeight: '800',
+                            letterSpacing: '0.02em'
+                          }}
+                        >
+                          Congratulations!
+                        </h2>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: 'clamp(16px, 1.6vw, 24px)',
+                            fontWeight: '600',
+                            lineHeight: '1.35'
+                          }}
+                        >
+                          Kumpleto at tama ang sagot mo. Lilipat na sa susunod na level.
+                        </p>
+                        <p
+                          style={{
+                            margin: '12px 0 0',
+                            fontSize: 'clamp(13px, 1.2vw, 18px)',
+                            fontWeight: '700',
+                            opacity: 0.86
+                          }}
+                        >
+                          I-click ang screen para magpatuloy.
+                        </p>
+                      </section>
+                    </div>
+                  )}
+                </section>
+              )
+            }
+
+            if (storyPage === 30) {
+              return (
+                <section
+                  className="story-stage-two-next-level"
+                  aria-label="Stage II completion"
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -1258,41 +2278,33 @@ function App() {
                     padding: '18px 18px 24px'
                   }}
                 >
-                  <div className="page-indicator">📖 Page 28 / 28</div>
-
+                  <div className="page-indicator">📖 Page 30 / 31</div>
                   <h1 style={{
-                    margin: '0 0 22px',
+                    margin: '0 0 14px',
                     color: '#111',
-                    fontSize: 'clamp(36px, 4.4vw, 64px)',
+                    fontSize: 'clamp(34px, 4.2vw, 60px)',
                     fontWeight: '800',
                     letterSpacing: '0.02em'
-                  }}>STAGE II</h1>
-
-                  <section
-                    aria-label="Stage II instructions"
-                    style={{
-                      width: 'min(92%, 920px)',
-                      border: '2px solid rgba(0, 0, 0, 0.85)',
-                      backgroundColor: 'rgba(225, 231, 235, 0.28)',
-                      padding: '32px 24px 28px',
-                      textAlign: 'center',
-                      color: '#101314',
-                      fontFamily: 'Poppins, system-ui, sans-serif',
-                      fontSize: 'clamp(16px, 1.6vw, 30px)',
-                      lineHeight: '1.38'
-                    }}
-                  >
-                    <p style={{ margin: '0 auto 18px', maxWidth: '760px', fontWeight: '600' }}>
-                      Tulungan si Liwayway na alamin ang mga naglahong elemento ng tula. Ilagay sa mga bakanteng
-                      kahon kung ano ang tinutukoy na elemento sa ibinigay na tula. Paalala lamang na hindi lahat
-                      ng bakanteng kahon ay may kaakibat na sagot.
+                  }}>LEVEL COMPLETE</h1>
+                  <section style={{
+                    width: 'min(92%, 920px)',
+                    border: '2px solid rgba(0, 0, 0, 0.85)',
+                    backgroundColor: 'rgba(225, 231, 235, 0.28)',
+                    padding: '28px 24px',
+                    textAlign: 'center',
+                    color: '#101314',
+                    fontFamily: 'Poppins, system-ui, sans-serif',
+                    fontSize: 'clamp(16px, 1.6vw, 26px)',
+                    lineHeight: '1.38'
+                  }}>
+                    <p style={{ margin: '0 0 16px', fontWeight: '700' }}>
+                      Mahusay! Natapos mo ang level na ito.
                     </p>
-
                     <button
                       type="button"
                       onClick={(event) => {
                         event.stopPropagation()
-                        goHome()
+                        setStoryPage(31)
                       }}
                       className="quiz-next-button"
                       style={{
@@ -1300,7 +2312,7 @@ function App() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '10px',
-                        minWidth: '128px',
+                        minWidth: '140px',
                         padding: '10px 18px',
                         border: '0',
                         borderRadius: '999px',
@@ -1312,7 +2324,7 @@ function App() {
                         boxShadow: '0 6px 12px rgba(0, 0, 0, 0.2)'
                       }}
                     >
-                      Got It!
+                      Next
                       <img
                         src={clickImage}
                         alt=""
@@ -1325,6 +2337,364 @@ function App() {
                         }}
                       />
                     </button>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 31) {
+              return (
+                <section
+                  className="story-stage-four-layout"
+                  aria-label="Stage III board"
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `linear-gradient(rgba(38, 42, 58, 0.42), rgba(38, 42, 58, 0.42)), url(${scaryBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '18px 16px 20px',
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <div className="page-indicator">📖 Page 31 / 32</div>
+
+                  <section
+                    style={{
+                      width: 'min(98%, 1880px)',
+                      border: '2px solid rgba(0, 0, 0, 0.92)',
+                      backgroundColor: 'rgba(214, 219, 231, 0.16)',
+                      padding: '8px',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '10px'
+                    }}
+                  >
+                    <section style={{ display: 'grid', gap: '6px' }}>
+                      {stageFourLeftPrompts.map((text, index) => (
+                        <div key={`stage4-left-${index}`} style={{ display: 'grid', gridTemplateColumns: '1fr minmax(120px, 170px)', gap: '6px' }}>
+                          <div
+                            style={{
+                              border: '2px solid rgba(0, 0, 0, 0.92)',
+                              minHeight: '104px',
+                              padding: '10px 12px',
+                              textAlign: 'center',
+                              display: 'grid',
+                              placeItems: 'center',
+                              color: '#101316',
+                              fontSize: 'clamp(15px, 1.2vw, 30px)',
+                              lineHeight: '1.28',
+                              backgroundColor: 'rgba(230, 235, 244, 0.15)'
+                            }}
+                          >
+                            {text}
+                          </div>
+                          {stageFourMiddleSlots[index] === 'SAGOT' ? (
+                            <div
+                              onDragOver={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                              }}
+                              onDrop={(event) => {
+                                event.preventDefault()
+                                event.stopPropagation()
+                                const choiceId =
+                                  event.dataTransfer.getData('text/stage-four-choice-id') ||
+                                  event.dataTransfer.getData('text/plain') ||
+                                  stageFourSelectedChoiceId
+                                if (choiceId) {
+                                  const slotIndex = stageFourLeftSlotRows.indexOf(index)
+                                  if (slotIndex !== -1) {
+                                    placeStageFourChoice(slotIndex, choiceId)
+                                  }
+                                }
+                              }}
+                              onClick={(event) => {
+                                event.stopPropagation()
+                                const slotIndex = stageFourLeftSlotRows.indexOf(index)
+                                if (slotIndex === -1) {
+                                  return
+                                }
+                                if (stageFourSelectedChoiceId) {
+                                  placeStageFourChoice(slotIndex, stageFourSelectedChoiceId)
+                                  return
+                                }
+                                if (stageFourSlots[slotIndex]) {
+                                  clearStageFourSlot(slotIndex)
+                                }
+                              }}
+                              style={{
+                                border: '2px solid rgba(0, 0, 0, 0.92)',
+                                minHeight: '104px',
+                                display: 'grid',
+                                placeItems: 'center',
+                                color: '#111',
+                                fontWeight: '800',
+                                fontSize: stageFourSlots[stageFourLeftSlotRows.indexOf(index)] ? 'clamp(11px, 0.95vw, 16px)' : 'clamp(22px, 2.2vw, 40px)',
+                                lineHeight: stageFourSlots[stageFourLeftSlotRows.indexOf(index)] ? '1.25' : '1',
+                                letterSpacing: '0.03em',
+                                backgroundColor: 'rgba(230, 235, 244, 0.12)',
+                                textAlign: 'center',
+                                padding: '8px',
+                                overflowWrap: 'anywhere',
+                                wordBreak: 'break-word',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {(() => {
+                                const slotIndex = stageFourLeftSlotRows.indexOf(index)
+                                return stageFourSlots[slotIndex]
+                                  ? stageFourChoices.find((choice) => choice.id === stageFourSlots[slotIndex])?.text
+                                  : 'SAGOT'
+                              })()}
+                            </div>
+                          ) : (
+                            <div
+                              style={{
+                                border: '2px solid rgba(0, 0, 0, 0.92)',
+                                minHeight: '104px',
+                                display: 'grid',
+                                placeItems: 'center',
+                                color: '#111',
+                                fontWeight: '800',
+                                fontSize: 'clamp(22px, 2.2vw, 40px)',
+                                letterSpacing: '0.03em',
+                                backgroundColor: 'rgba(230, 235, 244, 0.12)'
+                              }}
+                            >
+                              {stageFourMiddleSlots[index]}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </section>
+
+                    <section
+                      style={{
+                        border: '2px solid rgba(0, 0, 0, 0.9)',
+                        backgroundColor: 'rgba(208, 220, 232, 0.18)',
+                        padding: '6px',
+                        display: 'grid',
+                        gridTemplateColumns: '1fr',
+                        gap: '6px'
+                      }}
+                    >
+                      {stageFourAvailableChoices.map((choice) => (
+                        <button
+                          key={choice.id}
+                          type="button"
+                          draggable
+                          onDragStart={(event) => {
+                            event.stopPropagation()
+                            event.dataTransfer.setData('text/stage-four-choice-id', choice.id)
+                            event.dataTransfer.setData('text/plain', choice.id)
+                          }}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setStageFourSelectedChoiceId(choice.id)
+                          }}
+                          style={{
+                            border: '2px solid rgba(0, 0, 0, 0.9)',
+                            backgroundColor:
+                              stageFourSelectedChoiceId === choice.id
+                                ? 'rgba(255, 238, 145, 0.68)'
+                                : 'rgba(212, 228, 241, 0.25)',
+                            minHeight: '82px',
+                            padding: '8px 10px',
+                            textAlign: 'center',
+                            fontSize: 'clamp(10px, 0.95vw, 16px)',
+                            lineHeight: '1.25',
+                            fontWeight: '600',
+                            color: '#14171a',
+                            cursor: 'grab'
+                          }}
+                        >
+                          {choice.text}
+                        </button>
+                      ))}
+                    </section>
+                  </section>
+
+                  <section
+                    aria-label="Stage III bottom sagot bins"
+                    style={{
+                      width: 'min(98%, 1880px)',
+                      marginTop: '12px',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                      gap: '16px'
+                    }}
+                  >
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div
+                        key={`stage4-bottom-${index}`}
+                        onDragOver={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                        }}
+                        onDrop={(event) => {
+                          event.preventDefault()
+                          event.stopPropagation()
+                          const choiceId =
+                            event.dataTransfer.getData('text/stage-four-choice-id') ||
+                            event.dataTransfer.getData('text/plain') ||
+                            stageFourSelectedChoiceId
+                          if (choiceId) {
+                            const slotIndex = stageFourLeftSlotRows.length + index
+                            placeStageFourChoice(slotIndex, choiceId)
+                          }
+                        }}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          const slotIndex = stageFourLeftSlotRows.length + index
+                          if (stageFourSelectedChoiceId) {
+                            placeStageFourChoice(slotIndex, stageFourSelectedChoiceId)
+                            return
+                          }
+                          if (stageFourSlots[slotIndex]) {
+                            clearStageFourSlot(slotIndex)
+                          }
+                        }}
+                        style={{
+                          border: '2px solid rgba(0, 0, 0, 0.92)',
+                          minHeight: '82px',
+                          display: 'grid',
+                          placeItems: 'center',
+                          backgroundColor: 'rgba(226, 233, 241, 0.16)',
+                          color: '#111',
+                          fontWeight: '800',
+                          fontSize: stageFourSlots[stageFourLeftSlotRows.length + index] ? 'clamp(11px, 0.95vw, 16px)' : 'clamp(26px, 2.2vw, 38px)',
+                          lineHeight: stageFourSlots[stageFourLeftSlotRows.length + index] ? '1.25' : '1',
+                          textAlign: 'center',
+                          padding: '8px 10px',
+                          overflowWrap: 'anywhere',
+                          wordBreak: 'break-word',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {stageFourSlots[stageFourLeftSlotRows.length + index]
+                          ? stageFourChoices.find((choice) => choice.id === stageFourSlots[stageFourLeftSlotRows.length + index])?.text
+                          : 'Sagot'}
+                      </div>
+                    ))}
+                  </section>
+
+                  <p
+                    style={{
+                      margin: '10px 0 6px',
+                      color: '#14171a',
+                      fontWeight: '700',
+                      fontSize: 'clamp(11px, 1vw, 16px)'
+                    }}
+                  >
+                    Tip: Sa mobile, i-tap muna ang choice sa kanan, tapos i-tap ang kahong SAGOT sa kaliwa o ibaba.
+                  </p>
+
+                  <p
+                    style={{
+                      margin: '0',
+                      color: '#14171a',
+                      fontWeight: '700',
+                      fontSize: 'clamp(12px, 1.1vw, 18px)'
+                    }}
+                  >
+                    Nailagay: {stageFourPlacedCount} / {STAGE_FOUR_TOTAL_SLOT_COUNT}
+                  </p>
+
+                  {isStageFourCompleteNoticeOpen && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        proceedToStageFive()
+                      }}
+                      style={{
+                        position: 'fixed',
+                        inset: 0,
+                        backgroundColor: 'rgba(10, 18, 28, 0.58)',
+                        display: 'grid',
+                        placeItems: 'center',
+                        padding: '18px',
+                        zIndex: 30,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <section
+                        style={{
+                          width: 'min(92%, 760px)',
+                          border: '2px solid rgba(0, 0, 0, 0.92)',
+                          backgroundColor: 'rgba(238, 252, 236, 0.95)',
+                          borderRadius: '14px',
+                          padding: '24px 22px',
+                          textAlign: 'center',
+                          color: '#102014',
+                          boxShadow: '0 10px 24px rgba(0, 0, 0, 0.25)'
+                        }}
+                      >
+                        <h2
+                          style={{
+                            margin: '0 0 10px',
+                            fontSize: 'clamp(24px, 2.4vw, 38px)',
+                            fontWeight: '800',
+                            letterSpacing: '0.02em'
+                          }}
+                        >
+                          Congratulations!
+                        </h2>
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: 'clamp(16px, 1.6vw, 24px)',
+                            fontWeight: '600',
+                            lineHeight: '1.35'
+                          }}
+                        >
+                          Kumpleto at tama ang sagot mo. I-click ang screen para magpatuloy sa susunod na pahina.
+                        </p>
+                      </section>
+                    </div>
+                  )}
+                </section>
+              )
+            }
+
+            if (storyPage === 32) {
+              return (
+                <section
+                  className="story-stage-five-intro"
+                  aria-label="Stage continuation story"
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${leavesBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '18px 16px 20px',
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <div className="page-indicator">📖 Page 32 / 32</div>
+                  <section
+                    style={{
+                      width: 'min(94%, 1540px)',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(187, 236, 170, 0.45)',
+                      padding: '34px 28px',
+                      textAlign: 'center',
+                      color: '#111',
+                      fontFamily: 'Poppins, system-ui, sans-serif',
+                      fontSize: 'clamp(20px, 2.1vw, 40px)',
+                      lineHeight: '1.38',
+                      backdropFilter: 'blur(1px)'
+                    }}
+                  >
+                    <p style={{ margin: '0 0 22px' }}>{storyThirtyTwoTextTop}</p>
+                    <p style={{ margin: 0 }}>{storyThirtyTwoTextBottom}</p>
                   </section>
                 </section>
               )
@@ -1374,7 +2744,8 @@ function App() {
 
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={(event) => {
+                        event.stopPropagation()
                         setIsQuizSolved(false)
                         setStoryPage(
                           quizStep === 4
@@ -1405,6 +2776,17 @@ function App() {
                       }}
                     >
                       TRY AGAIN
+                      <img
+                        src={clickImage}
+                        alt=""
+                        aria-hidden="true"
+                        style={{
+                          width: '22px',
+                          height: '22px',
+                          objectFit: 'contain',
+                          filter: 'invert(81%) sepia(79%) saturate(1376%) hue-rotate(3deg) brightness(104%) contrast(106%)'
+                        }}
+                      />
                     </button>
                   </section>
                 </section>
@@ -1650,7 +3032,24 @@ function App() {
         </section>
       </main>
     )
-  }, [isInfoOpen, isMusicOn, isQuizSolved, screen, storyPage, unlockedLevels])
+  }, [
+    isStageFourCompleteNoticeOpen,
+    isStageThreeCompleteNoticeOpen,
+    isStageTwoCompleteNoticeOpen,
+    isInfoOpen,
+    isMusicOn,
+    isQuizSolved,
+    quizStep,
+    screen,
+    stageFourSelectedChoiceId,
+    stageFourSlots,
+    stageThreeSelectedChoiceId,
+    stageThreeSlots,
+    stageTwoSelectedChoiceId,
+    stageTwoSlots,
+    storyPage,
+    unlockedLevels,
+  ])
 
   return <>{content}</>
 }
