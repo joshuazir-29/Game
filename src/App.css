@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;700&family=Cinzel:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;700&family=Cinzel:wght@400;600;700&family=Poppins:wght@400;500;600&display=swap');
 
 :root {
   --ink: #122619;
@@ -112,16 +112,16 @@
 
 .story-controls {
   position: absolute;
-  top: clamp(12px, 2vh, 20px);
-  right: clamp(8px, 1.2vw, 16px);
+  top: 1.8%;
+  right: 1.2%;
   display: grid;
-  gap: clamp(8px, 1.2vh, 12px);
+  gap: 0.9%;
   z-index: 2;
 }
 
 .story-controls button {
-  width: clamp(38px, 5.7vw, 60px);
-  height: clamp(38px, 5.7vw, 60px);
+  width: clamp(28px, 3.7vw, 40px);
+  height: clamp(28px, 3.7vw, 40px);
   padding: 0;
   border: 0;
   background: transparent;
@@ -141,17 +141,333 @@
   position: relative;
   z-index: 2;
   flex: 1;
+  min-height: 0;
   display: grid;
   place-items: end center;
-  padding: clamp(10px, 2vh, 20px) 72px 0;
+  padding: clamp(6px, 1.3vh, 14px) 72px 0;
 }
 
 .story-character {
-  width: min(62vw, 640px);
-  max-height: 68vh;
+  width: min(60vw, 580px);
+  max-height: min(56vh, 520px);
   object-fit: contain;
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.28));
   margin-bottom: -8px;
+}
+
+.story-two-center {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: end end;
+  padding: clamp(14px, 2.2vh, 20px) clamp(72px, 10vw, 128px) 0 0;
+}
+
+.story-two-character {
+  width: min(38vw, 360px);
+  max-height: min(62vh, 520px);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.32));
+}
+
+.story-two-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+}
+
+.story-three-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.story-four-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(16px, 3vw, 32px);
+}
+
+.story-four-box {
+  width: min(96%, 1760px);
+  margin: 0 auto;
+  padding: clamp(20px, 3vw, 30px) clamp(18px, 3.3vw, 36px);
+  background: rgba(243, 226, 154, 0.84);
+  border: 3px solid rgba(128, 95, 42, 0.62);
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(42, 31, 14, 0.2);
+  color: #1a1610;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(24px, 2.1vw, 42px);
+  line-height: 1.4;
+}
+
+.story-four-box p {
+  margin: 0;
+}
+
+.story-four-box p + p {
+  margin-top: clamp(14px, 2.2vh, 24px);
+}
+
+.story-four-quote {
+  color: #d17410;
+  font-family: 'Cinzel', serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(28px, 2.7vw, 52px);
+}
+
+.story-five-box {
+  width: min(96%, 1720px);
+  margin: 0 auto;
+  padding: clamp(18px, 2.8vw, 28px) clamp(16px, 3vw, 30px);
+  border-radius: 14px;
+  background: rgba(52, 41, 18, 0.68);
+  color: #f2f2eb;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(24px, 2vw, 40px);
+  line-height: 1.35;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
+}
+
+.story-five-box p {
+  margin: 0;
+}
+
+.story-seven-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+}
+
+.story-seven-character {
+  position: absolute;
+  right: clamp(26px, 6.2vw, 110px);
+  bottom: clamp(34px, 8%, 86px);
+  width: min(27vw, 320px);
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.3));
+  z-index: 1;
+}
+
+.story-seven-box {
+  position: absolute;
+  left: 2.2%;
+  right: 2.2%;
+  bottom: 2.6%;
+  min-height: 24%;
+  padding: clamp(60px, 8.6vh, 98px) clamp(16px, 3.4vw, 36px) clamp(16px, 2.2vh, 28px);
+  border-radius: 12px;
+  background: rgba(174, 136, 95, 0.94);
+  border: 2px solid rgba(127, 92, 55, 0.95);
+  color: #f7f2e8;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(24px, 2vw, 40px);
+  line-height: 1.35;
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.story-seven-name-tag {
+  position: absolute;
+  left: clamp(12px, 1.8vw, 26px);
+  top: 0;
+  width: clamp(180px, 19vw, 280px);
+  transform: translateY(-46%);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.28));
+}
+
+.story-seven-box p {
+  margin: 0;
+}
+
+.story-six-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+}
+
+.story-six-character {
+  position: absolute;
+  right: clamp(36px, 7.8vw, 140px);
+  top: clamp(20px, 3.4vh, 56px);
+  width: min(28vw, 340px);
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.34));
+}
+
+.story-six-box {
+  position: absolute;
+  left: 2.2%;
+  right: 2.2%;
+  bottom: 2.8%;
+  min-height: 26%;
+  padding: clamp(72px, 10.5vh, 118px) clamp(18px, 3.6vw, 40px) clamp(14px, 2.4vh, 28px);
+  border-radius: 12px;
+  background: rgba(171, 126, 84, 0.9);
+  border: 2px solid rgba(119, 82, 43, 0.95);
+  color: #f7f2e8;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(19px, 2vw, 37px);
+  line-height: 1.35;
+  box-shadow: 0 12px 18px rgba(0, 0, 0, 0.2);
+}
+
+.story-six-name-tag {
+  position: absolute;
+  left: clamp(10px, 1.5vw, 20px);
+  top: 0;
+  width: clamp(220px, 22vw, 330px);
+  transform: translateY(-48%);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+  z-index: 2;
+}
+
+.story-six-box p {
+  margin: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.story-three-box {
+  width: min(92%, 1780px);
+  margin: 0 auto;
+  padding: clamp(18px, 3vw, 26px) clamp(18px, 3.6vw, 32px);
+  background: rgba(197, 232, 175, 0.84);
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 12px 28px rgba(17, 41, 24, 0.16), 0 0 0 3px rgba(195, 231, 173, 0.16) inset;
+  color: #0e1d12;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(18px, 2vw, 29px);
+  line-height: 1.4;
+  backdrop-filter: blur(1px);
+}
+
+.story-three-box p {
+  margin: 0;
+}
+
+.story-screen-two::before {
+  background: linear-gradient(to bottom, rgba(214, 235, 202, 0.46), rgba(176, 211, 158, 0.62));
+  backdrop-filter: blur(1.6px);
+}
+
+.story-screen-two .story-two-center {
+  position: absolute;
+  top: clamp(34px, 7.5vh, 88px);
+  right: clamp(26px, 4.6vw, 90px);
+  display: block;
+  min-height: auto;
+  padding: 0;
+}
+
+.story-screen-two .story-two-character {
+  position: absolute;
+  top: 3.8%;
+  right: 14.6%;
+  width: 29.2%;
+  max-width: none;
+  max-height: none;
+  z-index: 2;
+}
+
+.story-two-box {
+  position: relative;
+  margin: 0 auto max(18px, env(safe-area-inset-bottom));
+  width: min(95%, 1240px);
+  background: rgba(182, 221, 163, 0.96);
+  border: 0;
+  border-radius: 16px;
+  padding: clamp(34px, 4vh, 42px) clamp(16px, 3vw, 32px) clamp(16px, 2.4vh, 24px);
+  text-align: center;
+  font-size: clamp(23px, 2.2vw, 40px);
+  line-height: 1.36;
+  z-index: 2;
+}
+
+.story-screen-two .story-two-box {
+  position: absolute;
+  left: 4.5%;
+  right: 7.2%;
+  bottom: 6.2%;
+  width: auto;
+  border-radius: 14px;
+  margin: 0;
+  padding: 4.8% 3.9% 2.3%;
+  background: rgba(184, 222, 166, 0.92);
+  box-shadow: 0 10px 20px rgba(16, 37, 23, 0.16);
+  backdrop-filter: blur(0.8px);
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: clamp(18px, 3.25vw, 36px);
+  line-height: 1.35;
+  z-index: 3;
+}
+
+.story-two-box p {
+  margin: 0;
+}
+
+.story-two-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.story-two-actions button {
+  border: 1px solid rgba(22, 53, 30, 0.55);
+  border-radius: 8px;
+  padding: 6px 11px;
+  background: rgba(231, 247, 222, 0.88);
+  color: #0f2417;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(12px, 1.05vw, 15px);
+  cursor: pointer;
+}
+
+.story-two-name-tag {
+  position: absolute;
+  left: clamp(8px, 1.1vw, 14px);
+  top: 0;
+  width: clamp(140px, 19vw, 250px);
+  transform: translateY(-42%);
+  filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.22));
+}
+
+.story-screen-two .story-two-name-tag {
+  left: 0.8%;
+  width: 25.5%;
+  transform: translateY(-50%);
+}
+
+.story-screen-two .story-controls {
+  top: 1.8%;
+  right: 1.2%;
+  gap: 0.9%;
+}
+
+.story-screen-two .story-controls button {
+  width: clamp(28px, 3.7vw, 40px);
+  height: clamp(28px, 3.7vw, 40px);
 }
 
 .story-box {
@@ -159,15 +475,47 @@
   margin: 0 auto max(8px, env(safe-area-inset-bottom));
   margin-top: -8px;
   width: min(86%, 900px);
-  background: rgba(187, 221, 172, 0.95);
-  border: 3px solid #1f3a24;
+  background: rgba(184, 223, 170, 0.95);
+  border: 0;
+  border-radius: 12px;
   padding: 16px 24px;
   text-align: center;
-  font-size: clamp(18px, 2.1vw, 36px);
-  line-height: 1.28;
+  font-size: clamp(16px, 1.5vw + 0.7vh, 30px);
+  line-height: 1.24;
   z-index: 2;
-  max-height: 56%;
-  overflow: auto;
+  max-height: none;
+  overflow: visible;
+}
+
+.name-tag {
+  display: inline-block;
+  vertical-align: -0.1em;
+  margin: 0 0.12em;
+}
+
+.name-tag img {
+  display: block;
+  width: clamp(88px, 9vw, 128px);
+  height: auto;
+}
+
+.story-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.story-actions button {
+  border: 2px solid #1f3a24;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-family: inherit;
+  font-weight: 700;
+  background: rgba(236, 248, 228, 0.95);
+  color: #132417;
+  cursor: pointer;
 }
 
 .settings-screen {
@@ -266,14 +614,14 @@
   }
 
   .story-controls {
-    top: 8px;
-    right: 6px;
-    gap: 6px;
+    top: 1.2%;
+    right: 0.8%;
+    gap: 1.1%;
   }
 
   .story-controls button {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
   }
 
   .story-box {
@@ -283,14 +631,145 @@
     padding: 12px 14px;
   }
 
+  .name-tag img {
+    width: clamp(80px, 26vw, 112px);
+  }
+
   .story-center {
     padding: 8px 52px 0 6px;
   }
 
   .story-character {
-    width: min(82vw, 430px);
-    max-height: 56vh;
+    width: min(76vw, 380px);
+    max-height: 48vh;
     margin-bottom: -6px;
+  }
+
+  .story-two-center {
+    padding: 8px 46px 0 0;
+  }
+
+  .story-two-character {
+    width: min(42vw, 230px);
+    max-height: 52vh;
+  }
+
+  .story-screen-two .story-two-character {
+    top: 5.2%;
+    right: 10.2%;
+    width: 35%;
+  }
+
+  .story-two-box {
+    width: calc(100% - 12px);
+    border-radius: 12px;
+    padding: 24px 12px 12px;
+    font-size: clamp(17px, 4.8vw, 32px);
+    line-height: 1.32;
+    margin-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .story-screen-two .story-two-box {
+    left: 2%;
+    right: 2%;
+    bottom: 4.4%;
+    width: auto;
+    border-radius: 12px;
+    padding: 8.2% 3.6% 3.2%;
+    font-size: clamp(17px, 4.2vw, 28px);
+  }
+
+  .story-two-name-tag {
+    width: clamp(118px, 28vw, 170px);
+    transform: translateY(-38%);
+  }
+
+  .story-screen-two .story-two-name-tag {
+    left: 1%;
+    width: 31%;
+    transform: translateY(-48%);
+  }
+
+  .story-screen-two .story-controls {
+    top: 1.2%;
+    right: 0.8%;
+    gap: 1.1%;
+  }
+
+  .story-screen-two .story-controls button {
+    width: 34px;
+    height: 34px;
+  }
+
+  .story-two-actions {
+    margin-top: 8px;
+    gap: 8px;
+  }
+
+  .story-two-actions button {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .story-four-box {
+    width: calc(100% - 8px);
+    border-width: 2px;
+    border-radius: 12px;
+    padding: 14px 12px;
+    font-size: clamp(17px, 4.8vw, 28px);
+    line-height: 1.35;
+  }
+
+  .story-four-quote {
+    font-size: clamp(21px, 5.4vw, 34px);
+  }
+
+  .story-five-box {
+    width: calc(100% - 8px);
+    border-radius: 12px;
+    padding: 14px 12px;
+    font-size: clamp(17px, 4.6vw, 28px);
+  }
+
+  .story-seven-character {
+    right: 5.2%;
+    bottom: clamp(20px, 6%, 56px);
+    width: min(38vw, 255px);
+  }
+
+  .story-seven-box {
+    left: 1.5%;
+    right: 1.5%;
+    bottom: 2.1%;
+    min-height: 28%;
+    padding: clamp(64px, 14vw, 102px) 3.5% 3.2%;
+    font-size: clamp(17px, 4.6vw, 28px);
+    line-height: 1.33;
+  }
+
+  .story-seven-name-tag {
+    width: clamp(150px, 34vw, 220px);
+  }
+
+  .story-six-character {
+    right: 4.8%;
+    top: 6.8%;
+    width: min(39vw, 260px);
+  }
+
+  .story-six-box {
+    left: 1.5%;
+    right: 1.5%;
+    bottom: 2.1%;
+    min-height: 28%;
+    padding: clamp(70px, 14vw, 110px) 3.5% 3.2%;
+    font-size: clamp(16px, 4.4vw, 24px);
+    line-height: 1.32;
+  }
+
+  .story-six-name-tag {
+    width: clamp(170px, 38vw, 240px);
+    transform: translateY(-45%);
   }
 
   .setting-item {
@@ -325,6 +804,98 @@
     width: min(86vw, 360px);
   }
 
+  .story-two-center {
+    padding-right: 34px;
+  }
+
+  .story-two-character {
+    width: min(49vw, 208px);
+  }
+
+  .story-screen-two .story-two-character {
+    top: 6.1%;
+    right: 8.8%;
+    width: 39%;
+  }
+
+  .story-two-box {
+    font-size: clamp(16px, 5.2vw, 28px);
+    padding-top: 22px;
+  }
+
+  .story-screen-two .story-two-box {
+    left: 1.5%;
+    right: 1.5%;
+    bottom: 3.5%;
+    padding-top: 9%;
+    font-size: clamp(16px, 4.7vw, 24px);
+  }
+
+  .story-two-name-tag {
+    width: clamp(104px, 31vw, 140px);
+  }
+
+  .story-screen-two .story-two-name-tag {
+    width: 35%;
+  }
+
+  .story-four-box {
+    padding: 12px 10px;
+    font-size: clamp(16px, 5.2vw, 24px);
+  }
+
+  .story-four-quote {
+    font-size: clamp(18px, 6.4vw, 30px);
+  }
+
+  .story-five-box {
+    font-size: clamp(16px, 5vw, 24px);
+    padding: 12px 10px;
+  }
+
+  .story-seven-character {
+    right: 3.8%;
+    bottom: clamp(14px, 5.2%, 44px);
+    width: min(43vw, 210px);
+  }
+
+  .story-seven-box {
+    left: 1%;
+    right: 1%;
+    bottom: 1.7%;
+    min-height: 30%;
+    padding-top: clamp(60px, 22vw, 92px);
+    font-size: clamp(16px, 5vw, 24px);
+  }
+
+  .story-seven-name-tag {
+    width: clamp(132px, 40vw, 185px);
+  }
+
+  .story-six-character {
+    right: 3.4%;
+    top: 8.3%;
+    width: min(44vw, 220px);
+  }
+
+  .story-six-box {
+    left: 1%;
+    right: 1%;
+    bottom: 1.7%;
+    min-height: 30%;
+    padding-top: clamp(68px, 22vw, 98px);
+    font-size: clamp(15px, 5vw, 20px);
+  }
+
+  .story-six-name-tag {
+    width: clamp(150px, 44vw, 205px);
+  }
+
+  .story-two-actions button {
+    padding: 4px 7px;
+    font-size: 10px;
+  }
+
   .settings-panel {
     width: min(96vw, 620px);
     padding: 12px;
@@ -346,12 +917,22 @@
   }
 
   .story-box {
-    font-size: clamp(14px, 3.1vh, 19px);
-    padding: 10px 12px;
+    font-size: clamp(13px, 2.6vh, 18px);
+    padding: 9px 11px;
   }
 
   .story-character {
-    max-height: 52vh;
+    max-height: 42vh;
+  }
+
+  .story-two-character {
+    max-height: 46vh;
+  }
+
+  .story-two-box {
+    font-size: clamp(13px, 2.7vh, 22px);
+    padding-top: 20px;
+    margin-bottom: max(6px, env(safe-area-inset-bottom));
   }
 }
 
