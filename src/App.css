@@ -24,6 +24,7 @@
 .menu-screen {
   --bg-focus-x: 50%;
   --bg-focus-y: 42%;
+  position: relative;
   display: grid;
   place-items: center;
   text-align: center;
@@ -135,6 +136,44 @@
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+}
+
+.story-info-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 520px);
+  padding: 16px;
+  border-radius: 12px;
+  border: 2px solid #2a5838;
+  background: rgba(233, 246, 218, 0.97);
+  color: #102919;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  box-shadow: 0 16px 26px rgba(0, 0, 0, 0.22);
+  z-index: 20;
+}
+
+.story-info-modal h2 {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 2.4vw, 30px);
+}
+
+.story-info-modal p {
+  margin: 6px 0;
+  font-size: clamp(15px, 1.55vw, 20px);
+}
+
+.story-info-modal button {
+  margin-top: 12px;
+  border: 2px solid #214329;
+  border-radius: 999px;
+  padding: 6px 16px;
+  background: #b7d99a;
+  color: #12321f;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .story-center {
@@ -253,6 +292,207 @@
   z-index: 2;
   flex: 1;
   min-height: 0;
+}
+
+.story-eight-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+}
+
+.story-nine-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: clamp(14px, 3vw, 28px);
+}
+
+.story-ten-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+}
+
+.story-eleven-layout {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+}
+
+.story-eleven-box {
+  position: absolute;
+  left: clamp(16px, 2.4vw, 30px);
+  right: clamp(16px, 2.4vw, 30px);
+  bottom: clamp(16px, 2.5vh, 28px);
+  padding: clamp(14px, 2.2vw, 24px) clamp(14px, 2.5vw, 24px);
+  border-radius: 12px;
+  background: rgba(170, 212, 154, 0.92);
+  color: #111a12;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(28px, 2.1vw, 40px);
+  line-height: 1.34;
+}
+
+.story-eleven-box p {
+  margin: 0;
+}
+
+.story-eleven-name-tag {
+  display: inline-block;
+  vertical-align: -0.11em;
+  margin: 0 0 0 4px;
+}
+
+.story-eleven-name-tag img {
+  display: block;
+  width: clamp(170px, 14vw, 232px);
+  height: auto;
+}
+
+.story-ten-character {
+  position: absolute;
+  right: clamp(14px, 3.5vw, 56px);
+  bottom: clamp(96px, 18%, 182px);
+  width: min(34vw, 330px);
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.32));
+  z-index: 4;
+}
+
+.story-ten-box {
+  position: absolute;
+  left: clamp(14px, 2.3vw, 38px);
+  right: clamp(14px, 2.3vw, 38px);
+  bottom: clamp(16px, 2.4vh, 26px);
+  min-height: 24%;
+  padding: clamp(56px, 8vh, 92px) clamp(18px, 2.8vw, 30px) clamp(16px, 2.6vh, 26px);
+  border-radius: 12px;
+  background: rgba(172, 130, 88, 0.95);
+  border: 2px solid rgba(118, 81, 47, 0.95);
+  color: #f7f2e8;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(26px, 2.1vw, 38px);
+  line-height: 1.34;
+  box-shadow: 0 12px 18px rgba(0, 0, 0, 0.2);
+}
+
+.story-ten-box p {
+  margin: 0;
+}
+
+.story-ten-name-tag {
+  position: absolute;
+  left: clamp(10px, 1.5vw, 20px);
+  top: 0;
+  width: clamp(200px, 21vw, 320px);
+  transform: translateY(-50%);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+}
+
+.story-nine-box {
+  width: min(94%, 1500px);
+  margin: 0 auto;
+  padding: clamp(12px, 1.9vw, 20px) clamp(10px, 1.8vw, 18px) clamp(14px, 2.2vw, 24px);
+  border-radius: 14px;
+  background: rgba(188, 224, 168, 0.74);
+  color: #121b12;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(23px, 2vw, 36px);
+  line-height: 1.4;
+  box-shadow: none;
+  max-height: min(78vh, 660px);
+  overflow-y: auto;
+}
+
+.story-nine-box p {
+  margin: 0;
+}
+
+.story-nine-box p + p {
+  margin-top: clamp(16px, 2.4vw, 28px);
+}
+
+.story-nine-intro {
+  max-width: min(94%, 1460px);
+  font-size: clamp(20px, 2.1vw, 34px);
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.story-nine-body {
+  font-size: clamp(18px, 1.75vw, 29px);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.story-nine-name-chip {
+  display: inline-block;
+  position: relative;
+  margin: 0 3px;
+  line-height: 1;
+  vertical-align: -0.08em;
+}
+
+.story-nine-name-chip img {
+  display: block;
+  width: clamp(146px, 11vw, 190px);
+  height: auto;
+}
+
+.story-nine-name-chip-lolo img {
+  width: clamp(168px, 13.2vw, 228px);
+}
+
+.story-nine-name-chip-liwayway img {
+  width: clamp(152px, 12vw, 206px);
+}
+
+.story-eight-character {
+  position: absolute;
+  right: clamp(30px, 6.2vw, 120px);
+  bottom: clamp(102px, 21%, 196px);
+  width: min(24vw, 300px);
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.32));
+  z-index: 3;
+}
+
+.story-eight-box {
+  position: absolute;
+  left: 1.6%;
+  right: 1.6%;
+  bottom: 1.8%;
+  min-height: 22%;
+  padding: clamp(58px, 8vh, 92px) clamp(16px, 3.2vw, 30px) clamp(18px, 2.8vh, 30px);
+  border-radius: 14px;
+  background: rgba(171, 126, 84, 0.93);
+  border: 2px solid rgba(119, 82, 43, 0.95);
+  color: #f7f2e8;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(26px, 2.4vw, 44px);
+  line-height: 1.2;
+  box-shadow: 0 12px 18px rgba(0, 0, 0, 0.2);
+}
+
+.story-eight-name-tag {
+  position: absolute;
+  left: clamp(10px, 1.5vw, 20px);
+  top: 0;
+  width: clamp(220px, 22vw, 330px);
+  transform: translateY(-48%);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+}
+
+.story-eight-box p {
+  margin: 0;
 }
 
 .story-seven-character {
@@ -521,6 +761,7 @@
 .settings-screen {
   --bg-focus-x: 50%;
   --bg-focus-y: 45%;
+  position: relative;
   display: grid;
   place-items: center;
   background: linear-gradient(var(--overlay), var(--overlay)), url('../Background/Background2.jpg') center / cover no-repeat;
@@ -751,6 +992,85 @@
     width: clamp(150px, 34vw, 220px);
   }
 
+  .story-eight-character {
+    right: 5%;
+    bottom: clamp(98px, 23%, 166px);
+    width: min(33vw, 230px);
+  }
+
+  .story-eight-box {
+    left: 1.5%;
+    right: 1.5%;
+    bottom: 1.9%;
+    min-height: 24%;
+    padding: clamp(54px, 12vw, 86px) 3.5% 3%;
+    font-size: clamp(22px, 5vw, 34px);
+  }
+
+  .story-eight-name-tag {
+    width: clamp(170px, 37vw, 240px);
+  }
+
+  .story-nine-box {
+    width: min(95%, 920px);
+    padding: clamp(10px, 2.8vw, 16px) clamp(9px, 2.6vw, 14px) clamp(12px, 3vw, 18px);
+    font-size: clamp(18px, 3.2vw, 26px);
+    line-height: 1.38;
+    max-height: 74vh;
+  }
+
+  .story-nine-intro {
+    max-width: min(96%, 980px);
+    font-size: clamp(17px, 2.9vw, 26px);
+  }
+
+  .story-nine-body {
+    font-size: clamp(15px, 2.8vw, 22px);
+  }
+
+  .story-nine-name-chip img {
+    width: clamp(132px, 18vw, 174px);
+  }
+
+  .story-nine-name-chip-lolo img {
+    width: clamp(150px, 22vw, 202px);
+  }
+
+  .story-nine-name-chip-liwayway img {
+    width: clamp(142px, 20vw, 188px);
+  }
+
+  .story-ten-character {
+    right: 3.5%;
+    bottom: clamp(88px, 21%, 150px);
+    width: min(38vw, 250px);
+  }
+
+  .story-ten-box {
+    left: 1.5%;
+    right: 1.5%;
+    bottom: 2%;
+    min-height: 26%;
+    padding: clamp(52px, 10vw, 78px) 3.4% 3.2%;
+    font-size: clamp(19px, 3.1vw, 30px);
+  }
+
+  .story-ten-name-tag {
+    width: clamp(170px, 30vw, 244px);
+  }
+
+  .story-eleven-box {
+    left: 1.5%;
+    right: 1.5%;
+    bottom: 2%;
+    padding: clamp(12px, 2.7vw, 18px) 3.2%;
+    font-size: clamp(20px, 3.2vw, 30px);
+  }
+
+  .story-eleven-name-tag img {
+    width: clamp(142px, 21vw, 196px);
+  }
+
   .story-six-character {
     right: 4.8%;
     top: 6.8%;
@@ -870,6 +1190,89 @@
 
   .story-seven-name-tag {
     width: clamp(132px, 40vw, 185px);
+  }
+
+  .story-eight-character {
+    right: 3.8%;
+    bottom: clamp(96px, 25%, 148px);
+    width: min(40vw, 190px);
+  }
+
+  .story-eight-box {
+    left: 1%;
+    right: 1%;
+    bottom: 1.7%;
+    min-height: 26%;
+    padding-top: clamp(48px, 15vw, 74px);
+    font-size: clamp(20px, 5.8vw, 29px);
+  }
+
+  .story-eight-name-tag {
+    width: clamp(150px, 44vw, 205px);
+  }
+
+  .story-nine-box {
+    width: min(96%, 680px);
+    padding: clamp(9px, 4vw, 14px) clamp(8px, 3.6vw, 12px) clamp(11px, 4.5vw, 17px);
+    font-size: clamp(14px, 4.1vw, 20px);
+    line-height: 1.34;
+    max-height: 70vh;
+  }
+
+  .story-nine-intro {
+    font-size: clamp(14px, 5.2vw, 19px);
+    line-height: 1.3;
+    max-width: 100%;
+  }
+
+  .story-nine-body {
+    font-size: clamp(12px, 4.8vw, 16px);
+    line-height: 1.34;
+  }
+
+  .story-nine-name-chip img {
+    width: clamp(118px, 30vw, 154px);
+  }
+
+  .story-nine-name-chip-lolo img {
+    width: clamp(138px, 35vw, 178px);
+  }
+
+  .story-nine-name-chip-liwayway img {
+    width: clamp(130px, 33vw, 168px);
+  }
+
+  .story-ten-character {
+    right: 2.8%;
+    bottom: clamp(82px, 23%, 132px);
+    width: min(44vw, 200px);
+  }
+
+  .story-ten-box {
+    left: 1%;
+    right: 1%;
+    bottom: 1.8%;
+    min-height: 30%;
+    padding-top: clamp(44px, 14vw, 68px);
+    font-size: clamp(15px, 4.5vw, 22px);
+    line-height: 1.3;
+  }
+
+  .story-ten-name-tag {
+    width: clamp(150px, 42vw, 205px);
+  }
+
+  .story-eleven-box {
+    left: 1%;
+    right: 1%;
+    bottom: 1.8%;
+    padding: clamp(10px, 3.8vw, 14px) 3.2%;
+    font-size: clamp(15px, 4.6vw, 22px);
+    line-height: 1.3;
+  }
+
+  .story-eleven-name-tag img {
+    width: clamp(120px, 34vw, 170px);
   }
 
   .story-six-character {
