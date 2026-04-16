@@ -871,7 +871,347 @@
   margin-top: 14px;
 }
 
+.story-stage-three-intro-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 28, 20, 0.42);
+  animation: story-bg-brighten 1.6s ease 2.2s forwards;
+}
+
+.story-stage-three-intro-content {
+  width: min(94%, 980px);
+  position: relative;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  color: #000;
+  text-align: center;
+  animation: stage-instruction-appear 0.6s ease;
+}
+
+.story-stage-three-intro-content h1 {
+  margin: 0;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(38px, 5vw, 58px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.story-stage-three-instruction-card {
+  width: min(92%, 780px);
+  border: 3px solid rgba(0, 0, 0, 0.88);
+  background: rgba(204, 235, 184, 0.34);
+  padding: clamp(18px, 3vw, 32px) clamp(16px, 3.4vw, 34px) clamp(14px, 2.4vw, 24px);
+}
+
+.story-stage-three-instruction-card p {
+  margin: 0;
+  color: #111;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(19px, 2.1vw, 33px);
+  line-height: 1.42;
+  font-weight: 600;
+}
+
+.story-stage-three-instruction-card button {
+  margin-top: clamp(16px, 2.2vw, 26px);
+  min-width: clamp(140px, 20vw, 220px);
+  padding: 8px 18px;
+  border: 3px solid rgba(0, 0, 0, 0.88);
+  background: rgba(191, 232, 164, 0.5);
+  color: #111;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(20px, 2vw, 34px);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.story-stage-three-instruction-card button:hover {
+  background: rgba(191, 232, 164, 0.66);
+}
+
+.stage-three-box-select-content {
+  width: min(96%, 1180px);
+  position: relative;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  gap: 20px;
+}
+
+.stage-three-box-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: clamp(10px, 2vw, 20px);
+  align-items: center;
+}
+
+.stage-three-box-button {
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background: #000;
+  color: #f3f3f3;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(42px, 5vw, 60px);
+  font-weight: 700;
+  line-height: 1;
+  height: clamp(128px, 20vw, 190px);
+  cursor: pointer;
+}
+
+.stage-three-box-button:hover {
+  border-color: rgba(255, 255, 255, 0.34);
+  transform: translateY(-1px);
+}
+
+.stage-three-box-caption {
+  margin: 0;
+  color: #111;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(26px, 2.6vw, 40px);
+  font-weight: 700;
+}
+
+.stage-three-writing-layout {
+  width: min(98%, 1680px);
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 12px;
+}
+
+.stage-three-writing-layout h1 {
+  margin: 0;
+  color: #000;
+  text-align: center;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(44px, 5.2vw, 64px);
+  font-weight: 800;
+}
+
+.stage-three-writing-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 26vw, 320px);
+  gap: 12px;
+}
+
+.stage-three-writing-main {
+  border: 2px solid rgba(0, 0, 0, 0.92);
+  background: rgba(205, 236, 182, 0.22);
+  min-height: clamp(380px, 66vh, 760px);
+  padding: 6px;
+}
+
+.stage-three-writing-main textarea {
+  width: 100%;
+  height: 100%;
+  min-height: clamp(360px, 62vh, 730px);
+  border: 0;
+  resize: none;
+  background: transparent;
+  color: #111;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(18px, 1.45vw, 24px);
+  line-height: 1.45;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.stage-three-writing-main textarea:focus {
+  outline: 0;
+}
+
+.stage-three-writing-side {
+  border: 2px solid rgba(0, 0, 0, 0.92);
+  background: rgba(205, 236, 182, 0.22);
+  padding: 8px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 10px;
+}
+
+.stage-three-side-box {
+  border: 2px solid rgba(0, 0, 0, 0.92);
+  background: rgba(205, 236, 182, 0.26);
+  padding: 10px;
+  color: #111;
+  text-align: center;
+}
+
+.stage-three-side-box h2 {
+  margin: 0;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(24px, 2.2vw, 34px);
+  font-weight: 700;
+}
+
+.stage-three-side-box p {
+  margin: 10px 0 0;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(14px, 1.3vw, 20px);
+  line-height: 1.34;
+  font-weight: 600;
+}
+
+.stage-three-materials-box {
+  display: grid;
+  align-content: center;
+  gap: 10px;
+}
+
+.stage-three-materials-box ul {
+  margin: 0;
+  padding-left: 18px;
+  text-align: left;
+}
+
+.stage-three-materials-box li {
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(14px, 1.2vw, 19px);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.stage-three-done-button {
+  border: 2px solid rgba(0, 0, 0, 0.92);
+  background: rgba(191, 232, 164, 0.5);
+  color: #111;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(28px, 2.4vw, 38px);
+  font-weight: 700;
+  min-height: clamp(54px, 7.2vh, 84px);
+  cursor: pointer;
+}
+
+.stage-three-done-button:hover {
+  background: rgba(191, 232, 164, 0.68);
+}
+
+.stage-three-done-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.story-stage-three-complete-content {
+  width: min(96%, 1760px);
+  position: relative;
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  gap: 16px;
+}
+
+.story-stage-three-complete-content h1 {
+  margin: 0;
+  color: #101010;
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(42px, 4.5vw, 64px);
+  font-weight: 800;
+}
+
+.story-stage-three-complete-card {
+  width: min(96%, 1720px);
+  border-radius: 14px;
+  background: rgba(243, 233, 168, 0.74);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
+  color: #141414;
+  text-align: center;
+  padding: clamp(26px, 3.6vw, 48px) clamp(18px, 3vw, 34px);
+  font-family: 'Poppins', system-ui, sans-serif;
+  font-size: clamp(20px, 2vw, 38px);
+  line-height: 1.35;
+}
+
+.story-stage-three-complete-card p {
+  margin: 0;
+}
+
+.story-stage-three-complete-card p + p {
+  margin-top: clamp(14px, 2vw, 24px);
+}
+
+.story-stage-three-complete-quote {
+  color: #da7a0f;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(26px, 2.7vw, 54px);
+  font-style: italic;
+  font-weight: 700;
+}
+
+@keyframes stage-instruction-appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes story-bg-brighten {
+  from {
+    background: rgba(18, 28, 20, 0.42);
+  }
+
+  to {
+    background: rgba(18, 28, 20, 0.12);
+  }
+}
+
 @media (max-width: 700px) {
+  .stage-three-writing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .story-stage-three-complete-card {
+    width: 100%;
+    font-size: clamp(16px, 4.8vw, 26px);
+    padding: 18px 12px;
+  }
+
+  .story-stage-three-complete-quote {
+    font-size: clamp(22px, 5.8vw, 32px);
+  }
+
+  .stage-three-writing-main {
+    min-height: 42vh;
+  }
+
+  .stage-three-writing-main textarea {
+    min-height: 38vh;
+  }
+
+  .stage-three-writing-side {
+    grid-template-rows: auto auto auto;
+  }
+
+  .stage-three-side-box h2 {
+    font-size: clamp(20px, 6.2vw, 26px);
+  }
+
+  .stage-three-done-button {
+    font-size: clamp(22px, 6vw, 30px);
+    min-height: 50px;
+  }
+
+  .stage-three-box-grid {
+    grid-template-columns: repeat(5, minmax(46px, 1fr));
+    gap: 8px;
+  }
+
+  .stage-three-box-button {
+    height: clamp(78px, 20vw, 108px);
+    font-size: clamp(32px, 9vw, 46px);
+  }
+
+  .stage-three-box-caption {
+    font-size: clamp(20px, 5.2vw, 28px);
+  }
+
   .menu-screen,
   .story-screen,
   .settings-screen {

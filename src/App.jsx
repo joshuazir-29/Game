@@ -28,6 +28,14 @@ import leavesBackground from '../Background/leaves.png'
 import mushroomBackground from '../Background/Mushroom.png'
 import scaryBackground from '../Background/scary.png'
 import bookImage from '../Background/book.png'
+import forestBackground from '../Background/forest.png'
+import stageThreeCompleteBackground from '../Background/c.png'
+import stageFourDialogueBackground from '../Background/a.png'
+import stageFourLibraryBackground from '../Background/lib.png'
+import hawiCharacterImage from '../Background/hawi.png'
+import bangCharacterImage from '../Background/bang.png'
+import liwaywayWritingImage from '../Background/z.png'
+import liwaywaySmileImage from '../Background/smile.png'
 
 const characterName = 'Liwayway'
 const TOTAL_LEVELS = 5
@@ -319,6 +327,32 @@ const stageFourChoices = stageFourRightChoices
   .map((text, index) => ({ id: `stage4-choice-${index + 1}`, text }))
 const storyThirtyTwoTextTop = 'Pagtapos nito\'y unti-unti nang bumalik ang kaniyang malinaw at maliwanag na paningin, ngunit hindi ibig sabihin nito\'y nakaalis na siya sa pagkakasakop ng hamog, kundi dahil ay natutuhan na niyang tumingin sa mga salitang lagpas sa panlabas na anyo nito.'
 const storyThirtyTwoTextBottom = 'Habang palalim nang palalim ang kaniyang pang-unawa at paglalakbay sa loob ng hamog na ito ay muling nahati ang daanan-may paparating pang pagsubok.'
+const storyThirtyThreeText = 'Ang huling pagsubok, Liwayway -hindi mo na aayusin ang tula ng iba. Isusulat mo na ang iyong sarili.'
+const storyThirtyFourText = 'May paksa ang naghihintay sa iyo sa loob ng limang kahon. Gamitin ang lahat ng natutunan mo — at ang iyong sariling damdamin.'
+const storyThirtyFiveText = 'Tulungan si Liwayway na bumuo ng isang tula batay sa paksang kanyang mabubunot mula sa limang sikretong kahon. Ang bawat kahon ay naglalaman ng isang paksa na magiging inspirasyon sa gagawing tula. Basahing mabuti ang paksang mabubunot at gamitin ito bilang pangunahing ideya ng inyong likhang tula.'
+const storyFortyThreeIntro = 'Nang maisulat ni Liwayway ang huling linya, ang pahina sa kanyang kamay ay nagkumpleto:'
+const storyFortyThreeQuote = 'Kung ang salita ay mawawala, saan dadalhin ang damdamin-sa tula. Doon ito palaging naghihintay.'
+const storyFortyThreeOutro = 'Lumiwanag ang buong aklatan. Lumabas si Lolo Buhawi sa hamog.'
+const storyFortyFourText = 'Sino ang sumulat ng unang dalawang linya, sa tingin mo?'
+const storyFortyFiveText = 'Napatigil si Liwayway. Tumingin sa kaniyang sulat-kamay.'
+const storyFortySixText = 'Ikaw — sa gabing sinubukan mong sumuko, ngunit hindi pa rin tumitigil ang iyong kamay.'
+const storyFortySevenText = 'Ngumiti si Liwayway. Sa unang pagkakataon mula nang magsimula ang lahat-tunay na ngumiti.'
+const storyFortyEightTitle = 'Tagumpay!'
+const storyFortyEightMessage = 'Natapos ni Liwayway ang kaniyang tula at muling nabuhay ang hardin ng mga salita. Ang iyong pag-unawa, damdamin, at tinig ang nagdala sa kanya rito.'
+const stageThreeBoxTopics = [
+  'Pagkakamali at pagkatuto',
+  'Pagmamahal sa sariling wika at kultura',
+  'Pangarap na propesiyon',
+  'Epekto ng social media sa kabataan',
+  'Kahalagahan ng edukasyon sa buhay',
+]
+const stageThreeTopicMaterials = {
+  'Pagkakamali at pagkatuto': ['Aral', 'Pagbabago', 'Pag-asa'],
+  'Pagmamahal sa sariling wika at kultura': ['Wika', 'Kultura', 'Pagkakakilanlan'],
+  'Pangarap na propesiyon': ['Pangarap', 'Sipag', 'Tagumpay'],
+  'Epekto ng social media sa kabataan': ['Responsableng paggamit', 'Epekto', 'Pagpapahalaga sa oras'],
+  'Kahalagahan ng edukasyon sa buhay': ['Edukasyon', 'Kinabukasan', 'Pag-unlad'],
+}
 const GAME_PROGRESS_STORAGE_KEY = 'aklatang-luntian-progress-v1'
 
 function App() {
@@ -338,6 +372,8 @@ function App() {
   const [stageFourSlots, setStageFourSlots] = useState(Array(STAGE_FOUR_TOTAL_SLOT_COUNT).fill(null))
   const [stageFourSelectedChoiceId, setStageFourSelectedChoiceId] = useState(null)
   const [isStageFourCompleteNoticeOpen, setIsStageFourCompleteNoticeOpen] = useState(false)
+  const [selectedStageThreeTopic, setSelectedStageThreeTopic] = useState(null)
+  const [stageThreePoemDraft, setStageThreePoemDraft] = useState('')
   const [hasLoadedProgress, setHasLoadedProgress] = useState(false)
 
   const startStory = () => {
@@ -353,6 +389,8 @@ function App() {
     setStageFourSlots(Array(STAGE_FOUR_TOTAL_SLOT_COUNT).fill(null))
     setStageFourSelectedChoiceId(null)
     setIsStageFourCompleteNoticeOpen(false)
+    setSelectedStageThreeTopic(null)
+    setStageThreePoemDraft('')
     setScreen('play')
   }
 
@@ -435,7 +473,18 @@ function App() {
     setStoryPage(23)
   }
 
+  const openStageThreeTopicSection = (topicIndex) => {
+    const safeIndex = Math.min(Math.max(topicIndex, 0), stageThreeBoxTopics.length - 1)
+    setSelectedStageThreeTopic(stageThreeBoxTopics[safeIndex])
+    setStoryPage(37 + safeIndex)
+  }
+
   const handleStoryScreenClick = () => {
+    // Stage III post-instruction pages are fully interactive and should not auto-advance on background clicks.
+    if (storyPage >= 35) {
+      return
+    }
+
     if (storyPage < 13) {
       goToNextPage()
       return
@@ -463,6 +512,21 @@ function App() {
 
     if (storyPage === 27) {
       setStoryPage(28)
+      return
+    }
+
+    if (storyPage === 32) {
+      setStoryPage(33)
+      return
+    }
+
+    if (storyPage === 33) {
+      setStoryPage(34)
+      return
+    }
+
+    if (storyPage === 34) {
+      setStoryPage(35)
     }
   }
 
@@ -617,7 +681,7 @@ function App() {
         }
 
         if (Number.isInteger(savedState.storyPage)) {
-          setStoryPage(Math.min(Math.max(savedState.storyPage, 1), 32))
+          setStoryPage(Math.min(Math.max(savedState.storyPage, 1), 33))
         }
 
         if (typeof savedState.isMusicOn === 'boolean') {
@@ -743,7 +807,7 @@ function App() {
         <main
           className={`story-screen ${storyPage === 2 ? 'story-screen-two' : ''}`.trim()}
           aria-label="Story scene"
-          onClick={handleStoryScreenClick}
+          onClick={storyPage >= 35 ? undefined : handleStoryScreenClick}
           style={
             storyPage >= 2
               ? {
@@ -2678,7 +2742,7 @@ function App() {
                     placeItems: 'center'
                   }}
                 >
-                  <div className="page-indicator">📖 Page 32 / 32</div>
+                  <div className="page-indicator">📖 Page 32 / 48</div>
                   <section
                     style={{
                       width: 'min(94%, 1540px)',
@@ -2695,6 +2759,726 @@ function App() {
                   >
                     <p style={{ margin: '0 0 22px' }}>{storyThirtyTwoTextTop}</p>
                     <p style={{ margin: 0 }}>{storyThirtyTwoTextBottom}</p>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 33) {
+              return (
+                <section
+                  className="story-stage-five-dialogue"
+                  aria-label="Lolo Buhawi final guidance"
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${forestBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '16px 16px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
+                  }}
+                >
+                  <div className="page-indicator">📖 Page 33 / 48</div>
+
+                  <section
+                    aria-label="Dialogue box"
+                    style={{
+                      position: 'relative',
+                      borderRadius: '14px',
+                      backgroundColor: 'rgba(184, 227, 164, 0.88)',
+                      minHeight: '28%',
+                      padding: '74px clamp(18px, 17vw, 320px) 22px 24px',
+                      color: '#111',
+                      fontSize: 'clamp(22px, 2.3vw, 42px)',
+                      lineHeight: '1.34',
+                      textAlign: 'center',
+                      zIndex: 2,
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    <img
+                      src={hawiCharacterImage}
+                      alt="Hawi"
+                      style={{
+                        position: 'absolute',
+                        right: 'clamp(6px, 6vw, 120px)',
+                        bottom: 'calc(100% - 135px)',
+                        width: 'clamp(230px, 42vw, 640px)',
+                        maxHeight: '78vh',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4))',
+                        zIndex: 4,
+                        pointerEvents: 'none'
+                      }}
+                    />
+
+                    <img
+                      src={buhawiTagImage}
+                      alt="Lolo Buhawi"
+                      style={{
+                        position: 'absolute',
+                        left: '18px',
+                        top: '0',
+                        width: 'clamp(180px, 22vw, 300px)',
+                        transform: 'translateY(-50%)',
+                        filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.28))'
+                      }}
+                    />
+                    <p style={{ margin: 0 }}>
+                      Ang huling pagsubok,{' '}
+                      <span style={{ color: '#67b52e', fontWeight: '800', textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000' }}>Liwayway</span>
+                      -hindi mo na aayusin ang tula ng iba. Isusulat mo na ang iyong sarili.
+                    </p>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 34) {
+              return (
+                <section
+                  className="story-stage-five-dialogue"
+                  aria-label="Bang final guidance"
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${forestBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '16px 16px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
+                  }}
+                >
+                  <div className="page-indicator">📖 Page 34 / 48</div>
+
+                  <section
+                    aria-label="Dialogue box"
+                    style={{
+                      position: 'relative',
+                      borderRadius: '14px',
+                      backgroundColor: 'rgba(184, 227, 164, 0.88)',
+                      minHeight: '28%',
+                      padding: '74px 24px 22px',
+                      color: '#111',
+                      fontSize: 'clamp(22px, 2.3vw, 42px)',
+                      lineHeight: '1.34',
+                      textAlign: 'center',
+                      zIndex: 2,
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    <img
+                      src={bangCharacterImage}
+                      alt="Bang"
+                      style={{
+                        position: 'absolute',
+                        right: 'clamp(12px, 4vw, 72px)',
+                        bottom: 'calc(100% - 52px)',
+                        width: 'clamp(190px, 30vw, 420px)',
+                        maxHeight: '58vh',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4))',
+                        zIndex: 4,
+                        pointerEvents: 'none'
+                      }}
+                    />
+
+                    <img
+                      src={buhawiTagImage}
+                      alt="Lolo Buhawi"
+                      style={{
+                        position: 'absolute',
+                        left: '18px',
+                        top: '0',
+                        width: 'clamp(150px, 19vw, 250px)',
+                        transform: 'translateY(-50%)',
+                        filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.28))'
+                      }}
+                    />
+                    <p
+                      style={{
+                        margin: 0
+                      }}
+                    >
+                      {storyThirtyFourText}
+                    </p>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 35) {
+              return (
+                <section
+                  className="story-stage-three-intro-page"
+                  aria-label="Stage III instructions"
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${forestBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '22px 16px 20px',
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <section className="story-stage-three-intro-content">
+                    <h1>STAGE III</h1>
+
+                    <section className="story-stage-three-instruction-card">
+                      <p>{storyThirtyFiveText}</p>
+
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setStoryPage(36)
+                        }}
+                      >
+                        Got It!
+                      </button>
+                    </section>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 36) {
+              return (
+                <section
+                  className="stage-three-box-select-page"
+                  aria-label="Stage III box selection"
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${forestBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '20px 16px',
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <section className="stage-three-box-select-content">
+                    <div className="stage-three-box-grid" role="group" aria-label="Choose a box">
+                      {stageThreeBoxTopics.map((_, index) => (
+                        <button
+                          key={`stage-three-topic-box-${index + 1}`}
+                          type="button"
+                          className="stage-three-box-button"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            openStageThreeTopicSection(index)
+                          }}
+                        >
+                          {index + 1}
+                        </button>
+                      ))}
+                    </div>
+
+                    <p className="stage-three-box-caption">Choose a box</p>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage >= 37 && storyPage <= 41) {
+              const topicFromPage = stageThreeBoxTopics[storyPage - 37] || stageThreeBoxTopics[0]
+              const activeTopic = selectedStageThreeTopic || topicFromPage
+
+              return (
+                <section
+                  className="story-stage-three-intro-page"
+                  aria-label="Stage III topic instructions"
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${forestBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '22px 16px 20px',
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <section className="story-stage-three-intro-content">
+                    <h1>STAGE III</h1>
+
+                    <section className="story-stage-three-instruction-card">
+                      <p>{activeTopic}</p>
+
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setStoryPage(42)
+                        }}
+                      >
+                        Got It!
+                      </button>
+                    </section>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 42) {
+              const activeTopic = selectedStageThreeTopic || stageThreeBoxTopics[0]
+              const topicMaterials = stageThreeTopicMaterials[activeTopic] || []
+
+              return (
+                <section
+                  className="stage-three-writing-page"
+                  aria-label="Stage III writing workspace"
+                  onClick={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => event.stopPropagation()}
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${forestBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '12px 14px 16px',
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <section className="stage-three-writing-layout">
+                    <h1>STAGE III</h1>
+
+                    <section className="stage-three-writing-grid">
+                      <section className="stage-three-writing-main" aria-label="Poem writing area">
+                        <textarea
+                          value={stageThreePoemDraft}
+                          onPointerDown={(event) => event.stopPropagation()}
+                          onMouseDown={(event) => event.stopPropagation()}
+                          onClick={(event) => event.stopPropagation()}
+                          onKeyDown={(event) => event.stopPropagation()}
+                          onFocus={(event) => event.stopPropagation()}
+                          onChange={(event) => setStageThreePoemDraft(event.target.value)}
+                          placeholder="Isulat dito ang iyong tula..."
+                        />
+                      </section>
+
+                      <aside className="stage-three-writing-side" aria-label="Topic and materials">
+                        <section className="stage-three-side-box">
+                          <h2>Paksa</h2>
+                          <p>{activeTopic}</p>
+                        </section>
+
+                        <section className="stage-three-side-box stage-three-materials-box">
+                          <h2>Materials</h2>
+                          <ul>
+                            {topicMaterials.map((material) => (
+                              <li key={`topic-material-${material}`}>{material}</li>
+                            ))}
+                          </ul>
+                        </section>
+
+                        <button
+                          type="button"
+                          className="stage-three-done-button"
+                          disabled={!stageThreePoemDraft.trim()}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            setStoryPage(43)
+                          }}
+                        >
+                          Done
+                        </button>
+                      </aside>
+                    </section>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 43) {
+              return (
+                <section
+                  className="story-stage-three-complete-page"
+                  aria-label="Stage III poem completion"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setStoryPage(44)
+                  }}
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${stageThreeCompleteBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '20px 16px 18px',
+                    display: 'grid',
+                    alignItems: 'start'
+                  }}
+                >
+                  <section className="story-stage-three-complete-content">
+                    <h1>Story 4</h1>
+
+                    <section className="story-stage-three-complete-card">
+                      <p>{storyFortyThreeIntro}</p>
+                      <p className="story-stage-three-complete-quote">{storyFortyThreeQuote}</p>
+                      <p>{storyFortyThreeOutro}</p>
+                    </section>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 44) {
+              return (
+                <section
+                  className="story-stage-four-dialogue-page"
+                  aria-label="Lolo Buhawi follow-up dialogue"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setStoryPage(45)
+                  }}
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${stageFourDialogueBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '16px 16px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
+                  }}
+                >
+                  <section
+                    aria-label="Dialogue box"
+                    style={{
+                      position: 'relative',
+                      borderRadius: '14px',
+                      backgroundColor: 'rgba(184, 227, 164, 0.88)',
+                      minHeight: '28%',
+                      padding: '74px 24px 22px',
+                      color: '#111',
+                      fontSize: 'clamp(22px, 2.3vw, 42px)',
+                      lineHeight: '1.34',
+                      textAlign: 'center',
+                      zIndex: 2,
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    <img
+                      src={bangCharacterImage}
+                      alt="Lolo Buhawi"
+                      style={{
+                        position: 'absolute',
+                        right: 'clamp(12px, 4vw, 72px)',
+                        bottom: 'calc(100% - 52px)',
+                        width: 'clamp(190px, 30vw, 420px)',
+                        maxHeight: '58vh',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4))',
+                        zIndex: 4,
+                        pointerEvents: 'none'
+                      }}
+                    />
+
+                    <img
+                      src={buhawiTagImage}
+                      alt="Lolo Buhawi"
+                      style={{
+                        position: 'absolute',
+                        left: '18px',
+                        top: '0',
+                        width: 'clamp(150px, 19vw, 250px)',
+                        transform: 'translateY(-50%)',
+                        filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.28))'
+                      }}
+                    />
+                    <p style={{ margin: 0 }}>{storyFortyFourText}</p>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 45) {
+              return (
+                <section
+                  className="story-stage-four-reflection-page"
+                  aria-label="Liwayway reflection"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setStoryPage(46)
+                  }}
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${stageFourLibraryBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '16px 18px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
+                  }}
+                >
+                  <img
+                    src={liwaywayWritingImage}
+                    alt="Liwayway"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      bottom: 'calc(26% - 44px)',
+                      transform: 'translateX(-50%)',
+                      width: 'clamp(260px, 35vw, 450px)',
+                      maxHeight: '66vh',
+                      objectFit: 'contain',
+                      filter: 'drop-shadow(0 9px 16px rgba(0, 0, 0, 0.35))',
+                      zIndex: 3,
+                      pointerEvents: 'none'
+                    }}
+                  />
+
+                  <section
+                    aria-label="Reflection box"
+                    style={{
+                      position: 'relative',
+                      borderRadius: '16px',
+                      backgroundColor: 'rgba(184, 227, 164, 0.82)',
+                      minHeight: '26%',
+                      padding: '30px 24px 28px',
+                      color: '#101010',
+                      fontSize: 'clamp(22px, 2.35vw, 40px)',
+                      lineHeight: '1.34',
+                      textAlign: 'left',
+                      zIndex: 2,
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.16)'
+                    }}
+                  >
+                    <p style={{ margin: 0 }}>{storyFortyFiveText}</p>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 46) {
+              return (
+                <section
+                  className="story-stage-four-dialogue-page"
+                  aria-label="Lolo Buhawi affirmation"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setStoryPage(47)
+                  }}
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${stageFourDialogueBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '16px 16px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
+                  }}
+                >
+                  <section
+                    aria-label="Dialogue box"
+                    style={{
+                      position: 'relative',
+                      borderRadius: '14px',
+                      backgroundColor: 'rgba(184, 227, 164, 0.88)',
+                      minHeight: '28%',
+                      padding: '74px 24px 22px',
+                      color: '#111',
+                      fontSize: 'clamp(22px, 2.3vw, 42px)',
+                      lineHeight: '1.34',
+                      textAlign: 'center',
+                      zIndex: 2,
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)'
+                    }}
+                  >
+                    <img
+                      src={bangCharacterImage}
+                      alt="Lolo Buhawi"
+                      style={{
+                        position: 'absolute',
+                        right: 'clamp(4px, 2vw, 22px)',
+                        bottom: 'calc(100% - 40px)',
+                        width: 'clamp(210px, 28vw, 390px)',
+                        maxHeight: '62vh',
+                        objectFit: 'contain',
+                        filter: 'drop-shadow(0 10px 18px rgba(0, 0, 0, 0.4))',
+                        zIndex: 4,
+                        pointerEvents: 'none'
+                      }}
+                    />
+
+                    <img
+                      src={buhawiTagImage}
+                      alt="Lolo Buhawi"
+                      style={{
+                        position: 'absolute',
+                        left: '18px',
+                        top: '0',
+                        width: 'clamp(150px, 19vw, 250px)',
+                        transform: 'translateY(-50%)',
+                        filter: 'drop-shadow(0 3px 6px rgba(0, 0, 0, 0.28))'
+                      }}
+                    />
+                    <p style={{ margin: 0 }}>{storyFortySixText}</p>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 47) {
+              return (
+                <section
+                  className="story-stage-four-reflection-page"
+                  aria-label="Liwayway smile"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    setStoryPage(48)
+                  }}
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${stageFourLibraryBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '16px 18px 18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end'
+                  }}
+                >
+                  <img
+                    src={liwaywaySmileImage}
+                    alt="Liwayway"
+                    style={{
+                      position: 'absolute',
+                      left: '50%',
+                      bottom: 'calc(26% - 2px)',
+                      transform: 'translateX(-50%)',
+                      width: 'clamp(220px, 31vw, 390px)',
+                      maxHeight: '58vh',
+                      objectFit: 'contain',
+                      filter: 'drop-shadow(0 9px 16px rgba(0, 0, 0, 0.35))',
+                      zIndex: 3,
+                      pointerEvents: 'none'
+                    }}
+                  />
+
+                  <section
+                    aria-label="Reflection box"
+                    style={{
+                      position: 'relative',
+                      borderRadius: '16px',
+                      backgroundColor: 'rgba(184, 227, 164, 0.82)',
+                      minHeight: '26%',
+                      padding: '30px 24px 28px',
+                      color: '#101010',
+                      fontSize: 'clamp(22px, 2.35vw, 40px)',
+                      lineHeight: '1.34',
+                      textAlign: 'center',
+                      zIndex: 2,
+                      boxShadow: '0 10px 20px rgba(0, 0, 0, 0.16)'
+                    }}
+                  >
+                    <p style={{ margin: 0 }}>{storyFortySevenText}</p>
+                  </section>
+                </section>
+              )
+            }
+
+            if (storyPage === 48) {
+              return (
+                <section
+                  className="story-final-victory-page"
+                  aria-label="Final victory screen"
+                  style={{
+                    minHeight: '100vh',
+                    backgroundImage: `url(${stageThreeCompleteBackground})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    position: 'relative',
+                    padding: '18px',
+                    display: 'grid',
+                    placeItems: 'center'
+                  }}
+                >
+                  <section
+                    style={{
+                      width: 'min(94%, 1060px)',
+                      border: '2px solid rgba(0, 0, 0, 0.88)',
+                      borderRadius: '16px',
+                      background: 'rgba(237, 243, 214, 0.72)',
+                      boxShadow: '0 14px 28px rgba(0, 0, 0, 0.2)',
+                      padding: 'clamp(24px, 3vw, 38px)',
+                      textAlign: 'center',
+                      color: '#111'
+                    }}
+                  >
+                    <h1
+                      style={{
+                        margin: '0 0 14px',
+                        fontSize: 'clamp(34px, 3.6vw, 56px)',
+                        fontWeight: '800',
+                        letterSpacing: '0.02em'
+                      }}
+                    >
+                      {storyFortyEightTitle}
+                    </h1>
+
+                    <p
+                      style={{
+                        margin: '0 auto',
+                        width: 'min(92%, 900px)',
+                        fontSize: 'clamp(18px, 1.9vw, 30px)',
+                        lineHeight: '1.4',
+                        fontWeight: '600'
+                      }}
+                    >
+                      {storyFortyEightMessage}
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        setStoryPage(1)
+                        setScreen('menu')
+                      }}
+                      style={{
+                        marginTop: 'clamp(18px, 2.2vw, 26px)',
+                        minWidth: '160px',
+                        padding: '10px 18px',
+                        borderRadius: '12px',
+                        border: '2px solid rgba(0, 0, 0, 0.88)',
+                        backgroundColor: 'rgba(195, 230, 168, 0.9)',
+                        color: '#101010',
+                        fontSize: 'clamp(20px, 2vw, 30px)',
+                        fontWeight: '700',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Done
+                    </button>
                   </section>
                 </section>
               )
@@ -3041,8 +3825,10 @@ function App() {
     isQuizSolved,
     quizStep,
     screen,
+    selectedStageThreeTopic,
     stageFourSelectedChoiceId,
     stageFourSlots,
+    stageThreePoemDraft,
     stageThreeSelectedChoiceId,
     stageThreeSlots,
     stageTwoSelectedChoiceId,
