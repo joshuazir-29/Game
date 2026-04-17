@@ -37,6 +37,7 @@ import bangCharacterImage from '../Background/bang.png'
 import liwaywayWritingImage from '../Background/z.png'
 import liwaywaySmileImage from '../Background/smile.png'
 import backgroundMusicTrack from '../Background/Audio/Funny Cartoon Kids Background Music For Videos - Background Music for Videos.mp3'
+import { isSupabaseConfigured, supabase } from './supabaseClient'
 
 const characterName = 'Liwayway'
 const TOTAL_LEVELS = 5
@@ -358,6 +359,83 @@ const stageThreeTopicMaterials = {
   'Kahalagahan ng edukasyon sa buhay': ['Edukasyon', 'Kinabukasan', 'Pag-unlad'],
 }
 const GAME_PROGRESS_STORAGE_KEY = 'aklatang-luntian-progress-v1'
+const POEM_SUBMISSIONS_STORAGE_KEY = 'aklatang-luntian-poem-submissions-v1'
+const PLAYER_ANSWERS_STORAGE_KEY = 'aklatang-luntian-player-answers-v1'
+const PLAYER_SESSION_STORAGE_KEY = 'aklatang-luntian-player-session-v1'
+const ADMIN_PANEL_PIN = '1234'
+const CANONICAL_STAGE_LABELS = ['Stage I', 'Stage II', 'Stage III', 'Stage IV']
+
+const toCanonicalStageLabel = (stageValue) => {
+  if (typeof stageValue !== 'string') {
+    return null
+  }
+
+  const trimmed = stageValue.trim()
+  if (!trimmed) {
+    return null
+  }
+
+  const normalized = trimmed.toLowerCase().replace(/\s+/g, '')
+  if (normalized === 'stagei' || normalized === 'stage1') {
+    return 'Stage I'
+  }
+
+  if (normalized === 'stageii' || normalized === 'stage2') {
+    return 'Stage II'
+  }
+
+  if (normalized === 'stageiii' || normalized === 'stage3') {
+    return 'Stage III'
+  }
+
+  if (normalized === 'stageiv' || normalized === 'stage4') {
+    return 'Stage IV'
+  }
+
+  return CANONICAL_STAGE_LABELS.includes(trimmed) ? trimmed : null
+}
+
+const getStageLabelFromPage = (page) => {
+  if (!Number.isInteger(page)) {
+    return null
+  }
+
+  if (page >= 14 && page <= 22) {
+    return 'Stage I'
+  }
+
+  if (page >= 23 && page <= 28) {
+    return 'Stage II'
+  }
+
+  if (page >= 29 && page <= 30) {
+    return 'Stage III'
+  }
+
+  if (page >= 31 && page <= 48) {
+    return 'Stage IV'
+  }
+
+  return null
+}
+
+const normalizeStageLabel = ({ stage, page }) => {
+  const canonicalFromStage = toCanonicalStageLabel(stage)
+  if (canonicalFromStage) {
+    return canonicalFromStage
+  }
+
+  const stageFromPage = getStageLabelFromPage(page)
+  if (stageFromPage) {
+    return stageFromPage
+  }
+
+  if (typeof stage === 'string' && stage.trim().length > 0) {
+    return stage.trim()
+  }
+
+  return 'Uncategorized'
+}
 
 const createShuffledStageTwoChoiceOrder = () => {
   const ids = stageTwoChoices.map((choice) => choice.id)
@@ -400,6 +478,20 @@ const createShuffledStageFourChoiceOrder = () => {
 
 function App() {
   const backgroundMusicRef = useRef(null)
+  const [playerSessionId] = useState(() => {
+    try {
+      const existingSessionId = localStorage.getItem(PLAYER_SESSION_STORAGE_KEY)
+      if (existingSessionId) {
+        return existingSessionId
+      }
+
+      const generatedSessionId = `player-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      localStorage.setItem(PLAYER_SESSION_STORAGE_KEY, generatedSessionId)
+      return generatedSessionId
+    } catch {
+      return `player-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    }
+  })
   const [screen, setScreen] = useState('menu')
   const [storyPage, setStoryPage] = useState(1)
   const [isMusicOn, setIsMusicOn] = useState(true)
@@ -421,6 +513,15 @@ function App() {
   const [isStageFourCompleteNoticeOpen, setIsStageFourCompleteNoticeOpen] = useState(false)
   const [selectedStageThreeTopic, setSelectedStageThreeTopic] = useState(null)
   const [stageThreePoemDraft, setStageThreePoemDraft] = useState('')
+  const [poemSubmissions, setPoemSubmissions] = useState([])
+  const [playerAnswerLogs, setPlayerAnswerLogs] = useState([])
+  const [adminPanelView, setAdminPanelView] = useState('poems')
+  const [activeAdminSubmissionId, setActiveAdminSubmissionId] = useState(null)
+  const [isPoemSubmitPopupOpen, setIsPoemSubmitPopupOpen] = useState(false)
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
+  const [isAdminAuthPromptOpen, setIsAdminAuthPromptOpen] = useState(false)
+  const [adminPinInput, setAdminPinInput] = useState('')
+  const [adminAuthError, setAdminAuthError] = useState('')
   const [hasLoadedProgress, setHasLoadedProgress] = useState(false)
 
   const startStory = () => {
@@ -441,6 +542,7 @@ function App() {
     setIsStageFourCompleteNoticeOpen(false)
     setSelectedStageThreeTopic(null)
     setStageThreePoemDraft('')
+    setIsPoemSubmitPopupOpen(false)
     setScreen('play')
   }
 
@@ -470,6 +572,142 @@ function App() {
     setIsMusicOn((state) => !state)
   }
 
+  const openAdminPanel = () => {
+    setIsInfoOpen(false)
+    if (isAdminAuthenticated) {
+      setScreen('admin')
+      return
+    }
+
+    setAdminPinInput('')
+    setAdminAuthError('')
+    setIsAdminAuthPromptOpen(true)
+  }
+
+  const closeAdminAuthPrompt = () => {
+    setAdminPinInput('')
+    setAdminAuthError('')
+    setIsAdminAuthPromptOpen(false)
+  }
+
+  const submitAdminPin = (event) => {
+    event.preventDefault()
+
+    if (adminPinInput.trim() === ADMIN_PANEL_PIN) {
+      setIsAdminAuthenticated(true)
+      setAdminAuthError('')
+      setIsAdminAuthPromptOpen(false)
+      setScreen('admin')
+      return
+    }
+
+    setAdminAuthError('Incorrect PIN.')
+  }
+
+  const lockAdminPanel = () => {
+    setIsAdminAuthenticated(false)
+    setAdminPinInput('')
+    setAdminAuthError('')
+    setIsAdminAuthPromptOpen(false)
+    setScreen('menu')
+  }
+
+  const logPlayerAnswer = ({ stage, activity, answerText, isCorrect = null, page = null, topic = null, extra = null }) => {
+    const resolvedStage = normalizeStageLabel({ stage, page })
+
+    const logEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      playerSessionId,
+      stage: resolvedStage,
+      activity,
+      answerText,
+      isCorrect,
+      page,
+      topic,
+      extra,
+      submittedAt: new Date().toISOString(),
+    }
+
+    setPlayerAnswerLogs((prev) => [logEntry, ...prev].slice(0, 1200))
+
+    void (async () => {
+      if (!isSupabaseConfigured || !supabase) {
+        return
+      }
+
+      const { error } = await supabase.from('player_answers').insert({
+        id: logEntry.id,
+        player_session_id: logEntry.playerSessionId,
+        stage: logEntry.stage,
+        activity: logEntry.activity,
+        answer_text: logEntry.answerText,
+        is_correct: logEntry.isCorrect,
+        story_page: logEntry.page,
+        topic: logEntry.topic,
+        extra: logEntry.extra,
+        submitted_at: logEntry.submittedAt,
+      })
+
+      if (error) {
+        console.error('Failed to sync player answer to Supabase:', error.message)
+      }
+    })()
+  }
+
+  const handleStageThreeDone = () => {
+    const poem = stageThreePoemDraft.trim()
+    if (!poem) {
+      return
+    }
+
+    const topic = selectedStageThreeTopic || stageThreeBoxTopics[0]
+    const submission = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      poem,
+      topic,
+      submittedAt: new Date().toISOString(),
+    }
+
+    setPoemSubmissions((prev) => [submission, ...prev])
+    setActiveAdminSubmissionId(submission.id)
+    logPlayerAnswer({
+      stage: 'Stage III',
+      activity: 'Final poem submission',
+      answerText: submission.poem,
+      isCorrect: true,
+      page: 42,
+      topic: submission.topic,
+      extra: {
+        source: 'stage-five-done',
+      },
+    })
+
+    void (async () => {
+      if (!isSupabaseConfigured || !supabase) {
+        return
+      }
+
+      const { error } = await supabase.from('poem_submissions').insert({
+        id: submission.id,
+        poem: submission.poem,
+        topic: submission.topic,
+        submitted_at: submission.submittedAt,
+      })
+
+      if (error) {
+        // Keep local submission even if remote sync fails.
+        console.error('Failed to sync submission to Supabase:', error.message)
+      }
+    })()
+
+    setIsPoemSubmitPopupOpen(true)
+  }
+
+  const continueAfterPoemSubmit = () => {
+    setIsPoemSubmitPopupOpen(false)
+    setStoryPage(43)
+  }
+
   const handleQuizAnswer = (answerIndex) => {
     const isFirstQuestion = quizStep === 0
     const isSecondQuestion = quizStep === 1
@@ -494,19 +732,34 @@ function App() {
             ? selectedAnswer?.startsWith('Ang kahirapan at kawalan ng pagkain')
             : selectedAnswer?.startsWith('Ang bawat tula ay nagmumula sa damdamin')
 
+    logPlayerAnswer({
+      stage: 'Stage I',
+      activity: `Quiz question ${quizStep + 1}`,
+      answerText: selectedAnswer ?? '',
+      isCorrect: Boolean(isCorrect),
+      page: storyPage,
+      extra: {
+        answerIndex,
+      },
+    })
+
     if (isCorrect) {
       if (isFirstQuestion) {
+        setIsQuizSolved(false)
         setQuizStep(1)
-        setStoryPage(15)
+        setStoryPage(22)
       } else if (isSecondQuestion) {
+        setIsQuizSolved(false)
         setQuizStep(2)
-        setStoryPage(17)
+        setStoryPage(22)
       } else if (isThirdQuestion) {
+        setIsQuizSolved(false)
         setQuizStep(3)
-        setStoryPage(19)
+        setStoryPage(22)
       } else if (isFourthQuestion) {
+        setIsQuizSolved(false)
         setQuizStep(4)
-        setStoryPage(21)
+        setStoryPage(22)
       } else {
         setIsQuizSolved(true)
         setStoryPage(22)
@@ -521,6 +774,23 @@ function App() {
     setIsQuizSolved(false)
     setQuizStep(0)
     setStoryPage(23)
+  }
+
+  const handleStageOneSuccessContinue = () => {
+    if (isQuizSolved) {
+      handleNextLevel()
+      return
+    }
+
+    setStoryPage(
+      quizStep === 4
+        ? 21
+        : quizStep === 3
+          ? 19
+          : quizStep === 2
+            ? 17
+            : 15,
+    )
   }
 
   const openStageThreeTopicSection = (topicIndex) => {
@@ -581,6 +851,24 @@ function App() {
   }
 
   const placeStageTwoChoice = (slotIndex, choiceId) => {
+    const isTopSlot = slotIndex < stageTwoLeftPrompts.length
+    const isCorrect = isTopSlot
+      ? choiceId === stageTwoCorrectBySlot[slotIndex]
+      : stageTwoCorrectBySlot.slice(stageTwoLeftPrompts.length).includes(choiceId)
+
+    const selectedChoiceText = stageTwoChoices.find((choice) => choice.id === choiceId)?.text ?? choiceId
+    logPlayerAnswer({
+      stage: 'Stage II',
+      activity: `Placed choice in slot ${slotIndex + 1}`,
+      answerText: selectedChoiceText,
+      isCorrect,
+      page: 28,
+      extra: {
+        choiceId,
+        slotIndex,
+      },
+    })
+
     setStageTwoSlots((prev) => {
       const next = prev.map((id) => (id === choiceId ? null : id))
       next[slotIndex] = choiceId
@@ -598,6 +886,24 @@ function App() {
   }
 
   const placeStageThreeChoice = (slotIndex, choiceId) => {
+    const isTopSlot = slotIndex < stageThreeLeftPrompts.length
+    const isCorrect = isTopSlot
+      ? choiceId === stageThreeCorrectBySlot[slotIndex]
+      : stageThreeCorrectBySlot.slice(stageThreeLeftPrompts.length).includes(choiceId)
+
+    const selectedChoiceText = stageThreeChoices.find((choice) => choice.id === choiceId)?.text ?? choiceId
+    logPlayerAnswer({
+      stage: 'Stage III',
+      activity: `Placed choice in slot ${slotIndex + 1}`,
+      answerText: selectedChoiceText,
+      isCorrect,
+      page: 29,
+      extra: {
+        choiceId,
+        slotIndex,
+      },
+    })
+
     setStageThreeSlots((prev) => {
       const next = prev.map((id) => (id === choiceId ? null : id))
       next[slotIndex] = choiceId
@@ -615,6 +921,24 @@ function App() {
   }
 
   const placeStageFourChoice = (slotIndex, choiceId) => {
+    const isTopSlot = slotIndex < stageFourLeftSlotRows.length
+    const isCorrect = isTopSlot
+      ? choiceId === stageFourTopCorrectBySlot[slotIndex]
+      : stageFourBottomCorrectIds.includes(choiceId)
+
+    const selectedChoiceText = stageFourChoices.find((choice) => choice.id === choiceId)?.text ?? choiceId
+    logPlayerAnswer({
+      stage: 'Stage IV',
+      activity: `Placed choice in slot ${slotIndex + 1}`,
+      answerText: selectedChoiceText,
+      isCorrect,
+      page: 31,
+      extra: {
+        choiceId,
+        slotIndex,
+      },
+    })
+
     setStageFourSlots((prev) => {
       const next = prev.map((id) => (id === choiceId ? null : id))
       next[slotIndex] = choiceId
@@ -766,6 +1090,25 @@ function App() {
   }, [isMusicOn])
 
   useEffect(() => {
+    if (screen === 'admin' && !isAdminAuthenticated) {
+      setScreen('menu')
+    }
+  }, [isAdminAuthenticated, screen])
+
+  useEffect(() => {
+    if (poemSubmissions.length === 0) {
+      if (activeAdminSubmissionId !== null) {
+        setActiveAdminSubmissionId(null)
+      }
+      return
+    }
+
+    if (!activeAdminSubmissionId || !poemSubmissions.some((item) => item.id === activeAdminSubmissionId)) {
+      setActiveAdminSubmissionId(poemSubmissions[0].id)
+    }
+  }, [activeAdminSubmissionId, poemSubmissions])
+
+  useEffect(() => {
     if (screen === 'play' && storyPage === 28 && isStageTwoSolved) {
       if (isStageTwoCompleteNoticeOpen) {
         return
@@ -826,7 +1169,7 @@ function App() {
 
       const savedState = JSON.parse(rawState)
       if (savedState && typeof savedState === 'object') {
-        if (savedState.screen === 'play' || savedState.screen === 'menu') {
+        if (savedState.screen === 'play' || savedState.screen === 'menu' || savedState.screen === 'admin') {
           setScreen(savedState.screen)
         }
 
@@ -884,6 +1227,22 @@ function App() {
           setStageFourSlots(savedState.stageFourSlots.map((item) => (typeof item === 'string' ? item : null)))
         }
 
+        if (Array.isArray(savedState.poemSubmissions)) {
+          setPoemSubmissions(
+            savedState.poemSubmissions
+              .filter(
+                (item) =>
+                  item &&
+                  typeof item === 'object' &&
+                  typeof item.id === 'string' &&
+                  typeof item.poem === 'string' &&
+                  typeof item.topic === 'string' &&
+                  typeof item.submittedAt === 'string',
+              )
+              .slice(0, 300),
+          )
+        }
+
         const validStageFourChoiceIds = new Set(stageFourChoices.map((choice) => choice.id))
         if (
           Array.isArray(savedState.stageFourChoiceOrder) &&
@@ -919,6 +1278,7 @@ function App() {
       stageThreeChoiceOrder,
       stageFourSlots,
       stageFourChoiceOrder,
+      poemSubmissions,
     }
 
     try {
@@ -940,7 +1300,278 @@ function App() {
     stageTwoSlots,
     storyPage,
     unlockedLevels,
+    poemSubmissions,
   ])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(POEM_SUBMISSIONS_STORAGE_KEY, JSON.stringify(poemSubmissions))
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [poemSubmissions])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(PLAYER_ANSWERS_STORAGE_KEY, JSON.stringify(playerAnswerLogs.slice(0, 1200)))
+    } catch {
+      // Ignore storage write failures.
+    }
+  }, [playerAnswerLogs])
+
+  useEffect(() => {
+    try {
+      const rawSubmissions = localStorage.getItem(POEM_SUBMISSIONS_STORAGE_KEY)
+      if (!rawSubmissions) {
+        return
+      }
+
+      const parsed = JSON.parse(rawSubmissions)
+      if (Array.isArray(parsed)) {
+        setPoemSubmissions(
+          parsed
+            .filter(
+              (item) =>
+                item &&
+                typeof item === 'object' &&
+                typeof item.id === 'string' &&
+                typeof item.poem === 'string' &&
+                typeof item.topic === 'string' &&
+                typeof item.submittedAt === 'string',
+            )
+            .slice(0, 300),
+        )
+      }
+    } catch {
+      // Ignore corrupt submission storage.
+    }
+  }, [])
+
+  useEffect(() => {
+    try {
+      const rawAnswers = localStorage.getItem(PLAYER_ANSWERS_STORAGE_KEY)
+      if (!rawAnswers) {
+        return
+      }
+
+      const parsed = JSON.parse(rawAnswers)
+      if (Array.isArray(parsed)) {
+        setPlayerAnswerLogs(
+          parsed
+            .filter(
+              (item) =>
+                item &&
+                typeof item === 'object' &&
+                typeof item.id === 'string' &&
+                typeof item.playerSessionId === 'string' &&
+                typeof item.stage === 'string' &&
+                typeof item.activity === 'string' &&
+                typeof item.answerText === 'string' &&
+                typeof item.submittedAt === 'string',
+            )
+            .slice(0, 1200),
+        )
+      }
+    } catch {
+      // Ignore corrupt local answer logs.
+    }
+  }, [])
+
+  useEffect(() => {
+    let isCancelled = false
+    let pollIntervalId = null
+    let throttledReloadTimeoutId = null
+
+    const mapSupabasePoemSubmissions = (rows) =>
+      rows
+        .filter(
+          (item) =>
+            item &&
+            typeof item.id === 'string' &&
+            typeof item.poem === 'string' &&
+            typeof item.topic === 'string' &&
+            typeof item.submitted_at === 'string',
+        )
+        .map((item) => ({
+          id: item.id,
+          poem: item.poem,
+          topic: item.topic,
+          submittedAt: item.submitted_at,
+        }))
+
+    const mapSupabasePlayerAnswers = (rows) =>
+      rows
+        .filter(
+          (item) =>
+            item &&
+            typeof item.id === 'string' &&
+            typeof item.player_session_id === 'string' &&
+            typeof item.activity === 'string' &&
+            typeof item.answer_text === 'string' &&
+            typeof item.submitted_at === 'string',
+        )
+        .map((item) => ({
+          id: item.id,
+          playerSessionId: item.player_session_id,
+          stage: normalizeStageLabel({
+            stage: typeof item.stage === 'string' ? item.stage : null,
+            page: Number.isInteger(item.story_page) ? item.story_page : null,
+          }),
+          activity: item.activity,
+          answerText: item.answer_text,
+          isCorrect: typeof item.is_correct === 'boolean' ? item.is_correct : null,
+          page: Number.isInteger(item.story_page) ? item.story_page : null,
+          topic: typeof item.topic === 'string' ? item.topic : null,
+          extra: item.extra && typeof item.extra === 'object' ? item.extra : null,
+          submittedAt: item.submitted_at,
+        }))
+
+    const loadPoemSubmissionsFromSupabase = async () => {
+      const poemResult = await supabase
+        .from('poem_submissions')
+        .select('id, poem, topic, submitted_at')
+        .order('submitted_at', { ascending: false })
+        .limit(300)
+
+      if (isCancelled) {
+        return
+      }
+
+      if (poemResult.error) {
+        console.error('Failed to load submissions from Supabase:', poemResult.error.message)
+        return
+      }
+
+      if (Array.isArray(poemResult.data)) {
+        setPoemSubmissions(mapSupabasePoemSubmissions(poemResult.data))
+      }
+    }
+
+    const loadPlayerAnswersFromSupabase = async () => {
+      const answerResult = await supabase
+        .from('player_answers')
+        .select('id, player_session_id, stage, activity, answer_text, is_correct, story_page, topic, extra, submitted_at')
+        .order('submitted_at', { ascending: false })
+        .limit(1200)
+
+      if (isCancelled) {
+        return
+      }
+
+      if (answerResult.error) {
+        console.error('Failed to load player answers from Supabase:', answerResult.error.message)
+        return
+      }
+
+      if (Array.isArray(answerResult.data)) {
+        setPlayerAnswerLogs(mapSupabasePlayerAnswers(answerResult.data))
+      }
+    }
+
+    const loadSupabaseAdminData = async () => {
+      if (!isSupabaseConfigured || !supabase) {
+        return
+      }
+
+      const [poemLoad, answerLoad] = await Promise.allSettled([
+        loadPoemSubmissionsFromSupabase(),
+        loadPlayerAnswersFromSupabase(),
+      ])
+
+      if (poemLoad.status === 'rejected') {
+        console.error('Unexpected error while loading submissions from Supabase:', poemLoad.reason)
+      }
+
+      if (answerLoad.status === 'rejected') {
+        console.error('Unexpected error while loading player answers from Supabase:', answerLoad.reason)
+      }
+    }
+
+    if (!isSupabaseConfigured || !supabase) {
+      return () => {
+        isCancelled = true
+      }
+    }
+
+    const reloadFromCloud = () => {
+      if (isCancelled) {
+        return
+      }
+
+      void loadSupabaseAdminData()
+    }
+
+    const reloadFromCloudThrottled = () => {
+      if (throttledReloadTimeoutId) {
+        return
+      }
+
+      throttledReloadTimeoutId = setTimeout(() => {
+        throttledReloadTimeoutId = null
+        reloadFromCloud()
+      }, 250)
+    }
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        reloadFromCloud()
+      }
+    }
+
+    const handleStorageSync = (event) => {
+      if (!event || event.storageArea !== localStorage || typeof event.key !== 'string') {
+        return
+      }
+
+      if (event.key === POEM_SUBMISSIONS_STORAGE_KEY || event.key === PLAYER_ANSWERS_STORAGE_KEY) {
+        reloadFromCloudThrottled()
+      }
+    }
+
+    void loadSupabaseAdminData()
+
+    const realtimeChannel = supabase
+      .channel(`admin-live-${Date.now()}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'player_answers' },
+        () => {
+          reloadFromCloudThrottled()
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'poem_submissions' },
+        () => {
+          reloadFromCloudThrottled()
+        },
+      )
+      .subscribe()
+
+    window.addEventListener('focus', handleVisibilityOrFocus)
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus)
+    window.addEventListener('storage', handleStorageSync)
+
+    if (screen === 'admin') {
+      pollIntervalId = setInterval(() => {
+        reloadFromCloud()
+      }, 5000)
+    }
+
+    return () => {
+      isCancelled = true
+      if (pollIntervalId) {
+        clearInterval(pollIntervalId)
+      }
+      if (throttledReloadTimeoutId) {
+        clearTimeout(throttledReloadTimeoutId)
+      }
+      window.removeEventListener('focus', handleVisibilityOrFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus)
+      window.removeEventListener('storage', handleStorageSync)
+      void supabase.removeChannel(realtimeChannel)
+    }
+  }, [screen])
 
   const renderGlobalControls = () => (
     <div className="story-controls" aria-label="Scene controls" onClick={(event) => event.stopPropagation()}>
@@ -972,6 +1603,8 @@ function App() {
         <h2>Info</h2>
         {screen === 'play' ? (
           <p>Tap/click the scene to go to the next page.</p>
+        ) : screen === 'admin' ? (
+          <p>Review submitted poems from players here.</p>
         ) : (
           <p>Use Play from the menu to start the story.</p>
         )}
@@ -981,6 +1614,69 @@ function App() {
           Close
         </button>
       </section>
+    )
+  }
+
+  const renderAdminAccessButton = () => {
+    if (screen !== 'menu') {
+      return null
+    }
+
+    return (
+      <button
+        type="button"
+        className="admin-access-fab"
+        aria-label="Open admin panel"
+        onClick={(event) => {
+          event.stopPropagation()
+          openAdminPanel()
+        }}
+      >
+        <img className="admin-access-fab-icon" src={settingIcon} alt="" aria-hidden="true" />
+        <span className="admin-access-fab-label">Admin</span>
+      </button>
+    )
+  }
+
+  const renderAdminAuthPrompt = () => {
+    if (!isAdminAuthPromptOpen) {
+      return null
+    }
+
+    return (
+      <div
+        className="admin-auth-overlay"
+        onClick={() => closeAdminAuthPrompt()}
+        role="presentation"
+      >
+        <section
+          className="admin-auth-card"
+          aria-label="Admin security"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <h2>Admin Security</h2>
+          <p>Enter PIN to open Admin panel.</p>
+
+          <form onSubmit={submitAdminPin}>
+            <input
+              type="password"
+              value={adminPinInput}
+              onChange={(event) => setAdminPinInput(event.target.value)}
+              placeholder="Enter PIN"
+              autoFocus
+            />
+
+            {adminAuthError ? <p className="admin-auth-error">{adminAuthError}</p> : null}
+
+            <div className="admin-auth-actions">
+              <button type="button" onClick={closeAdminAuthPrompt}>
+                Cancel
+              </button>
+              <button type="submit">Unlock</button>
+            </div>
+          </form>
+        </section>
+      </div>
     )
   }
 
@@ -1467,6 +2163,7 @@ function App() {
             }
 
             if (storyPage === 22 || isQuizSolved) {
+              const isStageOneComplete = isQuizSolved
                 return (
                   <section className="story-fourteen-layout quiz-success-screen" aria-label="Quiz success screen" style={{
                     display: 'flex',
@@ -1487,16 +2184,18 @@ function App() {
                       fontWeight: '800',
                       margin: '4px 0 10px',
                       letterSpacing: '0.02em'
-                    }}>STAGE I COMPLETE</h1>
+                    }}>{isStageOneComplete ? 'STAGE I COMPLETE' : 'STAGE I'}</h1>
 
-                    <p style={{
+                    {isStageOneComplete && (
+                      <p style={{
                       margin: '0 0 16px',
                       color: '#111',
                       fontSize: 'clamp(14px, 1.6vw, 22px)',
                       fontWeight: '700',
                       textAlign: 'center',
                       letterSpacing: '0.03em'
-                    }}>Nakumpleto mo ang 5/5 tanong.</p>
+                      }}>Nakumpleto mo ang 5/5 tanong.</p>
+                    )}
 
                     <section className="quiz-success-panel" style={{
                       width: 'min(96%, 760px)',
@@ -1514,7 +2213,9 @@ function App() {
                         fontWeight: '700',
                         lineHeight: '1.28'
                       }}>
-                        Mahusay! Natapos mo ang Stage I.
+                        {isStageOneComplete
+                          ? 'Mahusay! Natapos mo ang Stage I.'
+                          : 'Mahusay! Natumpak mo ang kahulugan ng matalinghagang salita!'}
                       </p>
 
                       <p style={{
@@ -1523,12 +2224,14 @@ function App() {
                         fontWeight: '600',
                         lineHeight: '1.32'
                       }}>
-                        Handa ka na para sa susunod na antas ng pag-unawa sa tula.
+                        {isStageOneComplete
+                          ? 'Handa ka na para sa susunod na antas ng pag-unawa sa tula.'
+                          : 'Pindutin ang Next Level para magpatuloy sa susunod na tanong.'}
                       </p>
 
                       <button
                         type="button"
-                        onClick={handleNextLevel}
+                        onClick={handleStageOneSuccessContinue}
                         className="quiz-next-button"
                         style={{
                           display: 'inline-flex',
@@ -1545,7 +2248,7 @@ function App() {
                           boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)'
                         }}
                       >
-                        Continue
+                        Next Level
                         <img src={clickImage} alt="" aria-hidden="true" style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
                       </button>
                     </section>
@@ -3280,13 +3983,84 @@ function App() {
                           disabled={!stageThreePoemDraft.trim()}
                           onClick={(event) => {
                             event.stopPropagation()
-                            setStoryPage(43)
+                            handleStageThreeDone()
                           }}
                         >
                           Done
                         </button>
                       </aside>
                     </section>
+
+                    {isPoemSubmitPopupOpen && (
+                      <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Submission successful"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          continueAfterPoemSubmit()
+                        }}
+                        style={{
+                          position: 'fixed',
+                          inset: 0,
+                          backgroundColor: 'rgba(10, 18, 28, 0.58)',
+                          display: 'grid',
+                          placeItems: 'center',
+                          padding: '18px',
+                          zIndex: 50,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <section
+                          onClick={(event) => event.stopPropagation()}
+                          style={{
+                            width: 'min(92%, 760px)',
+                            border: '2px solid rgba(0, 0, 0, 0.92)',
+                            backgroundColor: 'rgba(238, 252, 236, 0.95)',
+                            borderRadius: '14px',
+                            padding: '24px 22px',
+                            textAlign: 'center',
+                            color: '#102014',
+                            boxShadow: '0 10px 24px rgba(0, 0, 0, 0.25)',
+                          }}
+                        >
+                          <h2
+                            style={{
+                              margin: '0 0 10px',
+                              fontSize: 'clamp(24px, 2.4vw, 38px)',
+                              fontWeight: '800',
+                              letterSpacing: '0.02em',
+                            }}
+                          >
+                            Submission Saved
+                          </h2>
+                          <p
+                            style={{
+                              margin: '0 0 14px',
+                              fontSize: 'clamp(16px, 1.6vw, 24px)',
+                              fontWeight: '600',
+                              lineHeight: '1.35',
+                            }}
+                          >
+                            Your poem has been submitted and added to the Admin panel.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={continueAfterPoemSubmit}
+                            style={{
+                              border: '2px solid rgba(0, 0, 0, 0.82)',
+                              backgroundColor: 'rgba(195, 230, 168, 0.9)',
+                              color: '#102014',
+                              padding: '9px 16px',
+                              fontWeight: '700',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            Continue
+                          </button>
+                        </section>
+                      </div>
+                    )}
                   </section>
                 </section>
               )
@@ -3977,6 +4751,223 @@ function App() {
       )
     }
 
+    if (screen === 'admin') {
+      const finalPoemAnswerLogs = playerAnswerLogs.filter(
+        (entry) => typeof entry?.activity === 'string' && entry.activity.trim().toLowerCase() === 'final poem submission',
+      )
+      const activeSubmission =
+        poemSubmissions.find((submission) => submission.id === activeAdminSubmissionId) || poemSubmissions[0] || null
+
+      return (
+        <main className="menu-screen" aria-label="Admin submissions panel">
+          {renderGlobalControls()}
+          {renderInfoModal()}
+
+          <section
+            style={{
+              width: 'min(95vw, 1220px)',
+              margin: '20px auto',
+              border: '2px solid rgba(0, 0, 0, 0.9)',
+              backgroundColor: 'rgba(238, 246, 232, 0.85)',
+              padding: '20px',
+              color: '#102014',
+              boxSizing: 'border-box',
+            }}
+          >
+            <h1 style={{ margin: '0 0 12px', fontSize: 'clamp(30px, 4vw, 52px)' }}>Admin Panel</h1>
+            <p style={{ margin: '0 0 14px', fontWeight: '700' }}>
+              Poems: {poemSubmissions.length} | Player answers: {finalPoemAnswerLogs.length}
+            </p>
+
+            <button
+              type="button"
+              onClick={lockAdminPanel}
+              style={{
+                marginBottom: '14px',
+                border: '2px solid rgba(0, 0, 0, 0.86)',
+                backgroundColor: 'rgba(255, 255, 255, 0.82)',
+                color: '#111',
+                fontWeight: '700',
+                padding: '8px 14px',
+                cursor: 'pointer',
+              }}
+            >
+              Lock Admin
+            </button>
+
+            <section
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '14px',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setAdminPanelView('poems')}
+                style={{
+                  border: '2px solid rgba(0, 0, 0, 0.86)',
+                  backgroundColor:
+                    adminPanelView === 'poems' ? 'rgba(195, 230, 168, 0.9)' : 'rgba(255, 255, 255, 0.82)',
+                  color: '#111',
+                  fontWeight: '700',
+                  padding: '8px 14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Poem Submissions
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdminPanelView('answers')}
+                style={{
+                  border: '2px solid rgba(0, 0, 0, 0.86)',
+                  backgroundColor:
+                    adminPanelView === 'answers' ? 'rgba(195, 230, 168, 0.9)' : 'rgba(255, 255, 255, 0.82)',
+                  color: '#111',
+                  fontWeight: '700',
+                  padding: '8px 14px',
+                  cursor: 'pointer',
+                }}
+              >
+                Player Answers
+              </button>
+            </section>
+
+            {adminPanelView === 'poems' ? (
+              poemSubmissions.length === 0 ? (
+                <p style={{ margin: 0, fontWeight: '600' }}>No poem submissions yet.</p>
+              ) : (
+                <section
+                  style={{
+                    display: 'grid',
+                    gap: '12px',
+                  }}
+                >
+                  <section
+                    role="tablist"
+                    aria-label="Submitted poems tabs"
+                    style={{
+                      display: 'flex',
+                      gap: '8px',
+                      overflowX: 'auto',
+                      paddingBottom: '6px',
+                    }}
+                  >
+                    {poemSubmissions.map((submission, index) => {
+                      const isActive = submission.id === activeSubmission?.id
+
+                      return (
+                        <button
+                          key={submission.id}
+                          type="button"
+                          role="tab"
+                          aria-selected={isActive}
+                          onClick={() => setActiveAdminSubmissionId(submission.id)}
+                          style={{
+                            border: '2px solid rgba(0, 0, 0, 0.82)',
+                            backgroundColor: isActive
+                              ? 'rgba(195, 230, 168, 0.9)'
+                              : 'rgba(255, 255, 255, 0.8)',
+                            color: '#111',
+                            fontWeight: '700',
+                            padding: '8px 12px',
+                            cursor: 'pointer',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          Submission {poemSubmissions.length - index}
+                        </button>
+                      )
+                    })}
+                  </section>
+
+                  {activeSubmission && (
+                    <article
+                      role="tabpanel"
+                      style={{
+                        border: '2px solid rgba(0, 0, 0, 0.86)',
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                        padding: '12px',
+                        maxHeight: '60vh',
+                        overflowY: 'auto',
+                      }}
+                    >
+                      <p style={{ margin: '0 0 6px', fontWeight: '800' }}>
+                        Selected: Submission{' '}
+                        {poemSubmissions.length - poemSubmissions.findIndex((item) => item.id === activeSubmission.id)}
+                      </p>
+                      <p style={{ margin: '0 0 6px', fontWeight: '700' }}>Topic: {activeSubmission.topic}</p>
+                      <p style={{ margin: '0 0 8px', fontSize: '0.95rem', opacity: 0.8 }}>
+                        Submitted: {new Date(activeSubmission.submittedAt).toLocaleString()}
+                      </p>
+                      <pre
+                        style={{
+                          margin: 0,
+                          whiteSpace: 'pre-wrap',
+                          fontFamily: 'Poppins, system-ui, sans-serif',
+                          lineHeight: '1.4',
+                        }}
+                      >
+                        {activeSubmission.poem}
+                      </pre>
+                    </article>
+                  )}
+                </section>
+              )
+            ) : finalPoemAnswerLogs.length === 0 ? (
+              <p style={{ margin: 0, fontWeight: '600' }}>No player answers yet.</p>
+            ) : (
+              <section
+                style={{
+                  display: 'grid',
+                  gap: '12px',
+                }}
+              >
+                <article
+                  role="region"
+                  aria-label="Player answer logs"
+                  style={{
+                    border: '2px solid rgba(0, 0, 0, 0.86)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    padding: '12px',
+                    maxHeight: '60vh',
+                    overflowY: 'auto',
+                    display: 'grid',
+                    gap: '8px',
+                  }}
+                >
+                  {finalPoemAnswerLogs.map((entry) => (
+                    <section
+                      key={entry.id}
+                      style={{
+                        border: '1px solid rgba(0, 0, 0, 0.35)',
+                        padding: '8px',
+                        backgroundColor: 'rgba(246, 252, 242, 0.85)',
+                      }}
+                    >
+                      <p style={{ margin: '0 0 4px', fontWeight: '800' }}>
+                        Stage III - Final poem submission
+                      </p>
+                      <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>
+                        Session: {entry.playerSessionId} | Page: {entry.page ?? '-'} | Correct:{' '}
+                        {entry.isCorrect === null ? 'n/a' : entry.isCorrect ? 'yes' : 'no'}
+                      </p>
+                      <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>
+                        Submitted: {new Date(entry.submittedAt).toLocaleString()}
+                      </p>
+                      <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{entry.answerText}</p>
+                    </section>
+                  ))}
+                </article>
+              </section>
+            )}
+          </section>
+        </main>
+      )
+    }
+
     return (
       <main className="menu-screen" aria-label="Main menu">
         {renderGlobalControls()}
@@ -3995,6 +4986,9 @@ function App() {
               onClick={startStory}
             >
               Play
+            </button>
+            <button type="button" onClick={openAdminPanel}>
+              Admin
             </button>
             <button type="button" onClick={() => setScreen('settings')}>
               Settings
@@ -4016,10 +5010,16 @@ function App() {
     stageFourSelectedChoiceId,
     stageFourSlots,
     stageFourChoiceOrder,
+    adminPanelView,
+    activeAdminSubmissionId,
+    isAdminAuthenticated,
+    playerAnswerLogs,
+    poemSubmissions,
     stageThreeChoiceOrder,
     stageThreePoemDraft,
     stageThreeSelectedChoiceId,
     stageThreeSlots,
+    isPoemSubmitPopupOpen,
     stageTwoChoiceOrder,
     stageTwoSelectedChoiceId,
     stageTwoSlots,
@@ -4027,7 +5027,13 @@ function App() {
     unlockedLevels,
   ])
 
-  return <>{content}</>
+  return (
+    <>
+      {content}
+      {renderAdminAccessButton()}
+      {renderAdminAuthPrompt()}
+    </>
+  )
 }
 
 export default App
