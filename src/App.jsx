@@ -351,13 +351,8 @@ const stageThreeBoxTopics = [
   'Epekto ng social media sa kabataan',
   'Kahalagahan ng edukasyon sa buhay',
 ]
-const stageThreeTopicMaterials = {
-  'Pagkakamali at pagkatuto': ['Aral', 'Pagbabago', 'Pag-asa'],
-  'Pagmamahal sa sariling wika at kultura': ['Wika', 'Kultura', 'Pagkakakilanlan'],
-  'Pangarap na propesiyon': ['Pangarap', 'Sipag', 'Tagumpay'],
-  'Epekto ng social media sa kabataan': ['Responsableng paggamit', 'Epekto', 'Pagpapahalaga sa oras'],
-  'Kahalagahan ng edukasyon sa buhay': ['Edukasyon', 'Kinabukasan', 'Pag-unlad'],
-}
+const DEFAULT_STAGE_THREE_TOPIC = 'Epekto ng social media sa kabataan'
+const STAGE_THREE_SHARED_MATERIALS = ['Responsableng paggamit', 'Epekto', 'Pagpapahalaga sa oras']
 const GAME_PROGRESS_STORAGE_KEY = 'aklatang-luntian-progress-v1'
 const POEM_SUBMISSIONS_STORAGE_KEY = 'aklatang-luntian-poem-submissions-v1'
 const PLAYER_ANSWERS_STORAGE_KEY = 'aklatang-luntian-player-answers-v1'
@@ -683,7 +678,7 @@ function App() {
       return
     }
 
-    const topic = selectedStageThreeTopic || stageThreeBoxTopics[0]
+    const topic = selectedStageThreeTopic || DEFAULT_STAGE_THREE_TOPIC
     const submission = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       playerName,
@@ -1153,17 +1148,27 @@ function App() {
   }, [isAdminAuthenticated, screen])
 
   useEffect(() => {
-    if (poemSubmissions.length === 0) {
+    const finalPoemAnswerIds = playerAnswerLogs
+      .filter((entry) => typeof entry?.activity === 'string' && entry.activity.trim().toLowerCase() === 'final poem submission')
+      .map((entry) => entry?.id)
+      .filter((id) => typeof id === 'string')
+
+    const availableSubmissionIds = [
+      ...poemSubmissions.map((item) => item.id),
+      ...finalPoemAnswerIds.filter((id) => !poemSubmissions.some((item) => item.id === id)),
+    ]
+
+    if (availableSubmissionIds.length === 0) {
       if (activeAdminSubmissionId !== null) {
         setActiveAdminSubmissionId(null)
       }
       return
     }
 
-    if (!activeAdminSubmissionId || !poemSubmissions.some((item) => item.id === activeAdminSubmissionId)) {
-      setActiveAdminSubmissionId(poemSubmissions[0].id)
+    if (!activeAdminSubmissionId || !availableSubmissionIds.includes(activeAdminSubmissionId)) {
+      setActiveAdminSubmissionId(availableSubmissionIds[0])
     }
-  }, [activeAdminSubmissionId, poemSubmissions])
+  }, [activeAdminSubmissionId, playerAnswerLogs, poemSubmissions])
 
   useEffect(() => {
     if (screen === 'play' && storyPage === 28 && isStageTwoSolved) {
@@ -4036,8 +4041,8 @@ function App() {
             }
 
             if (storyPage === 42) {
-              const activeTopic = selectedStageThreeTopic || stageThreeBoxTopics[0]
-              const topicMaterials = stageThreeTopicMaterials[activeTopic] || []
+              const activeTopic = selectedStageThreeTopic || DEFAULT_STAGE_THREE_TOPIC
+              const topicMaterials = STAGE_THREE_SHARED_MATERIALS
 
               return (
                 <section
@@ -4922,13 +4927,6 @@ function App() {
       const activeSubmission =
         adminSubmissions.find((submission) => submission.id === activeAdminSubmissionId) || adminSubmissions[0] || null
       const finalPoemAnswerLogsById = new Map(finalPoemAnswerLogs.map((entry) => [entry.id, entry]))
-      const selectedSubmissionAnswerLogs = activeSubmission
-        ? finalPoemAnswerLogs.filter(
-            (entry) =>
-              entry.id === activeSubmission.id ||
-              (typeof entry.answerText === 'string' && entry.answerText.trim() === activeSubmission.poem.trim()),
-          )
-        : []
       const activeSubmissionLog = activeSubmission ? finalPoemAnswerLogsById.get(activeSubmission.id) : null
       const activeSubmissionPlayerName =
         typeof activeSubmission?.playerName === 'string' && activeSubmission.playerName.trim() && activeSubmission.playerName !== 'Unknown player'
@@ -4957,9 +4955,7 @@ function App() {
             }}
           >
             <h1 style={{ margin: '0 0 12px', fontSize: 'clamp(30px, 4vw, 52px)' }}>Admin Panel</h1>
-            <p style={{ margin: '0 0 14px', fontWeight: '700' }}>
-              Poems: {adminSubmissions.length} | Player answers: {finalPoemAnswerLogs.length}
-            </p>
+            <p style={{ margin: '0 0 14px', fontWeight: '700' }}>Poems: {adminSubmissions.length}</p>
 
             {cloudSyncError && (
               <p
@@ -5113,62 +5109,6 @@ function App() {
                     >
                       {activeSubmission.poem}
                     </pre>
-
-                    <section
-                      role="region"
-                      aria-label="Player answer logs"
-                      style={{
-                        marginTop: '12px',
-                        borderTop: '1px solid rgba(0, 0, 0, 0.2)',
-                        paddingTop: '12px',
-                        display: 'grid',
-                        gap: '8px',
-                      }}
-                    >
-                      <p style={{ margin: 0, fontWeight: '800' }}>Player Answers</p>
-                      {selectedSubmissionAnswerLogs.length === 0 ? (
-                        <p style={{ margin: 0, fontSize: '0.95rem' }}>No player answers yet.</p>
-                      ) : (
-                        selectedSubmissionAnswerLogs.map((entry) => {
-                          const playerName =
-                            entry?.extra && typeof entry.extra === 'object' && typeof entry.extra.playerName === 'string'
-                              ? entry.extra.playerName.trim()
-                              : ''
-                          const isSameAsSavedPoem =
-                            typeof entry.answerText === 'string' &&
-                            typeof activeSubmission.poem === 'string' &&
-                            entry.answerText.trim() === activeSubmission.poem.trim()
-
-                          return (
-                            <section
-                              key={entry.id}
-                              style={{
-                                border: '1px solid rgba(0, 0, 0, 0.35)',
-                                padding: '10px',
-                                backgroundColor: 'rgba(246, 252, 242, 0.85)',
-                              }}
-                            >
-                              <p style={{ margin: '0 0 6px', fontWeight: '800' }}>Stage III - Final poem submission</p>
-                              <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>Player: {playerName || 'Unknown player'}</p>
-                              <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>
-                                Session: {entry.playerSessionId} | Page: {entry.page ?? '-'}
-                              </p>
-                              <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>
-                                Submitted: {new Date(entry.submittedAt).toLocaleString()} | Correct:{' '}
-                                {entry.isCorrect === null ? 'n/a' : entry.isCorrect ? 'yes' : 'no'}
-                              </p>
-                              {isSameAsSavedPoem ? (
-                                <p style={{ margin: 0, fontSize: '0.92rem', opacity: 0.8 }}>
-                                  Answer text matches the saved poem above.
-                                </p>
-                              ) : (
-                                <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{entry.answerText}</p>
-                              )}
-                            </section>
-                          )
-                        })
-                      )}
-                    </section>
                   </article>
                 )}
               </section>
