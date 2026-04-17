@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import settingIcon from '../Background/Icon/setting.png'
 import audioIcon from '../Background/Icon/audio.png'
@@ -36,6 +36,7 @@ import hawiCharacterImage from '../Background/hawi.png'
 import bangCharacterImage from '../Background/bang.png'
 import liwaywayWritingImage from '../Background/z.png'
 import liwaywaySmileImage from '../Background/smile.png'
+import backgroundMusicTrack from '../Background/Audio/Funny Cartoon Kids Background Music For Videos - Background Music for Videos.mp3'
 
 const characterName = 'Liwayway'
 const TOTAL_LEVELS = 5
@@ -325,6 +326,9 @@ const STAGE_FOUR_TOTAL_SLOT_COUNT = stageFourLeftSlotRows.length + STAGE_FOUR_BO
 const stageFourChoices = stageFourRightChoices
   .filter((text) => text && text.trim().length > 0)
   .map((text, index) => ({ id: `stage4-choice-${index + 1}`, text }))
+const stageFourTopCorrectBySlot = ['stage4-choice-10', 'stage4-choice-11', 'stage4-choice-12']
+const stageFourBottomCorrectIds = ['stage4-choice-2', 'stage4-choice-4', 'stage4-choice-9']
+const STAGE_FOUR_TOTAL_CORRECT = stageFourTopCorrectBySlot.length + stageFourBottomCorrectIds.length
 const storyThirtyTwoTextTop = 'Pagtapos nito\'y unti-unti nang bumalik ang kaniyang malinaw at maliwanag na paningin, ngunit hindi ibig sabihin nito\'y nakaalis na siya sa pagkakasakop ng hamog, kundi dahil ay natutuhan na niyang tumingin sa mga salitang lagpas sa panlabas na anyo nito.'
 const storyThirtyTwoTextBottom = 'Habang palalim nang palalim ang kaniyang pang-unawa at paglalakbay sa loob ng hamog na ito ay muling nahati ang daanan-may paparating pang pagsubok.'
 const storyThirtyThreeText = 'Ang huling pagsubok, Liwayway -hindi mo na aayusin ang tula ng iba. Isusulat mo na ang iyong sarili.'
@@ -355,7 +359,47 @@ const stageThreeTopicMaterials = {
 }
 const GAME_PROGRESS_STORAGE_KEY = 'aklatang-luntian-progress-v1'
 
+const createShuffledStageTwoChoiceOrder = () => {
+  const ids = stageTwoChoices.map((choice) => choice.id)
+
+  for (let index = ids.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    const temp = ids[index]
+    ids[index] = ids[randomIndex]
+    ids[randomIndex] = temp
+  }
+
+  return ids
+}
+
+const createShuffledStageThreeChoiceOrder = () => {
+  const ids = stageThreeChoices.map((choice) => choice.id)
+
+  for (let index = ids.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    const temp = ids[index]
+    ids[index] = ids[randomIndex]
+    ids[randomIndex] = temp
+  }
+
+  return ids
+}
+
+const createShuffledStageFourChoiceOrder = () => {
+  const ids = stageFourChoices.map((choice) => choice.id)
+
+  for (let index = ids.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    const temp = ids[index]
+    ids[index] = ids[randomIndex]
+    ids[randomIndex] = temp
+  }
+
+  return ids
+}
+
 function App() {
+  const backgroundMusicRef = useRef(null)
   const [screen, setScreen] = useState('menu')
   const [storyPage, setStoryPage] = useState(1)
   const [isMusicOn, setIsMusicOn] = useState(true)
@@ -364,12 +408,15 @@ function App() {
   const [isQuizSolved, setIsQuizSolved] = useState(false)
   const [quizStep, setQuizStep] = useState(0)
   const [stageTwoSlots, setStageTwoSlots] = useState(Array(STAGE_TWO_TOTAL_SLOT_COUNT).fill(null))
+  const [stageTwoChoiceOrder, setStageTwoChoiceOrder] = useState(() => createShuffledStageTwoChoiceOrder())
   const [stageTwoSelectedChoiceId, setStageTwoSelectedChoiceId] = useState(null)
   const [isStageTwoCompleteNoticeOpen, setIsStageTwoCompleteNoticeOpen] = useState(false)
   const [stageThreeSlots, setStageThreeSlots] = useState(Array(STAGE_THREE_TOTAL_SLOT_COUNT).fill(null))
+  const [stageThreeChoiceOrder, setStageThreeChoiceOrder] = useState(() => createShuffledStageThreeChoiceOrder())
   const [stageThreeSelectedChoiceId, setStageThreeSelectedChoiceId] = useState(null)
   const [isStageThreeCompleteNoticeOpen, setIsStageThreeCompleteNoticeOpen] = useState(false)
   const [stageFourSlots, setStageFourSlots] = useState(Array(STAGE_FOUR_TOTAL_SLOT_COUNT).fill(null))
+  const [stageFourChoiceOrder, setStageFourChoiceOrder] = useState(() => createShuffledStageFourChoiceOrder())
   const [stageFourSelectedChoiceId, setStageFourSelectedChoiceId] = useState(null)
   const [isStageFourCompleteNoticeOpen, setIsStageFourCompleteNoticeOpen] = useState(false)
   const [selectedStageThreeTopic, setSelectedStageThreeTopic] = useState(null)
@@ -381,12 +428,15 @@ function App() {
     setIsQuizSolved(false)
     setQuizStep(0)
     setStageTwoSlots(Array(STAGE_TWO_TOTAL_SLOT_COUNT).fill(null))
+    setStageTwoChoiceOrder(createShuffledStageTwoChoiceOrder())
     setStageTwoSelectedChoiceId(null)
     setIsStageTwoCompleteNoticeOpen(false)
     setStageThreeSlots(Array(STAGE_THREE_TOTAL_SLOT_COUNT).fill(null))
+    setStageThreeChoiceOrder(createShuffledStageThreeChoiceOrder())
     setStageThreeSelectedChoiceId(null)
     setIsStageThreeCompleteNoticeOpen(false)
     setStageFourSlots(Array(STAGE_FOUR_TOTAL_SLOT_COUNT).fill(null))
+    setStageFourChoiceOrder(createShuffledStageFourChoiceOrder())
     setStageFourSelectedChoiceId(null)
     setIsStageFourCompleteNoticeOpen(false)
     setSelectedStageThreeTopic(null)
@@ -581,21 +631,65 @@ function App() {
     })
   }
 
-  const stageTwoAvailableChoices = stageTwoChoices.filter((choice) => !stageTwoSlots.includes(choice.id))
-  const stageTwoPlacedCorrect = stageTwoSlots.reduce(
+  const stageTwoOrderLookup = new Map(stageTwoChoiceOrder.map((id, index) => [id, index]))
+  const stageTwoAvailableChoices = stageTwoChoices
+    .filter((choice) => !stageTwoSlots.includes(choice.id))
+    .sort(
+      (leftChoice, rightChoice) =>
+        (stageTwoOrderLookup.get(leftChoice.id) ?? Number.MAX_SAFE_INTEGER) -
+        (stageTwoOrderLookup.get(rightChoice.id) ?? Number.MAX_SAFE_INTEGER),
+    )
+  const stageTwoTopSlotCount = stageTwoLeftPrompts.length
+  const stageTwoTopPlacedCorrect = stageTwoSlots.slice(0, stageTwoTopSlotCount).reduce(
     (count, choiceId, index) => (choiceId && choiceId === stageTwoCorrectBySlot[index] ? count + 1 : count),
     0,
   )
+  const stageTwoBottomCorrectIds = stageTwoCorrectBySlot.slice(stageTwoTopSlotCount)
+  const stageTwoBottomPlacedCorrect = stageTwoSlots
+    .slice(stageTwoTopSlotCount)
+    .filter(Boolean)
+    .reduce((count, choiceId) => (stageTwoBottomCorrectIds.includes(choiceId) ? count + 1 : count), 0)
+  const stageTwoPlacedCorrect = stageTwoTopPlacedCorrect + stageTwoBottomPlacedCorrect
   const isStageTwoSolved = stageTwoPlacedCorrect === stageTwoCorrectBySlot.length
-  const stageThreeAvailableChoices = stageThreeChoices.filter((choice) => !stageThreeSlots.includes(choice.id))
-  const stageThreePlacedCorrect = stageThreeSlots.reduce(
+  const stageThreeOrderLookup = new Map(stageThreeChoiceOrder.map((id, index) => [id, index]))
+  const stageThreeAvailableChoices = stageThreeChoices
+    .filter((choice) => !stageThreeSlots.includes(choice.id))
+    .sort(
+      (leftChoice, rightChoice) =>
+        (stageThreeOrderLookup.get(leftChoice.id) ?? Number.MAX_SAFE_INTEGER) -
+        (stageThreeOrderLookup.get(rightChoice.id) ?? Number.MAX_SAFE_INTEGER),
+    )
+  const stageThreeTopSlotCount = stageThreeLeftPrompts.length
+  const stageThreeTopPlacedCorrect = stageThreeSlots.slice(0, stageThreeTopSlotCount).reduce(
     (count, choiceId, index) => (choiceId && choiceId === stageThreeCorrectBySlot[index] ? count + 1 : count),
     0,
   )
+  const stageThreeBottomCorrectIds = stageThreeCorrectBySlot.slice(stageThreeTopSlotCount)
+  const stageThreeBottomPlacedCorrect = stageThreeSlots
+    .slice(stageThreeTopSlotCount)
+    .filter(Boolean)
+    .reduce((count, choiceId) => (stageThreeBottomCorrectIds.includes(choiceId) ? count + 1 : count), 0)
+  const stageThreePlacedCorrect = stageThreeTopPlacedCorrect + stageThreeBottomPlacedCorrect
   const isStageThreeSolved = stageThreePlacedCorrect === stageThreeCorrectBySlot.length
-  const stageFourAvailableChoices = stageFourChoices.filter((choice) => !stageFourSlots.includes(choice.id))
-  const stageFourPlacedCount = stageFourSlots.filter(Boolean).length
-  const isStageFourSolved = stageFourPlacedCount === STAGE_FOUR_TOTAL_SLOT_COUNT
+  const stageFourOrderLookup = new Map(stageFourChoiceOrder.map((id, index) => [id, index]))
+  const stageFourAvailableChoices = stageFourChoices
+    .filter((choice) => !stageFourSlots.includes(choice.id))
+    .sort(
+      (leftChoice, rightChoice) =>
+        (stageFourOrderLookup.get(leftChoice.id) ?? Number.MAX_SAFE_INTEGER) -
+        (stageFourOrderLookup.get(rightChoice.id) ?? Number.MAX_SAFE_INTEGER),
+    )
+  const stageFourTopSlotCount = stageFourLeftSlotRows.length
+  const stageFourTopPlacedCorrect = stageFourSlots.slice(0, stageFourTopSlotCount).reduce(
+    (count, choiceId, index) => (choiceId && choiceId === stageFourTopCorrectBySlot[index] ? count + 1 : count),
+    0,
+  )
+  const stageFourBottomPlacedCorrect = stageFourSlots
+    .slice(stageFourTopSlotCount)
+    .filter(Boolean)
+    .reduce((count, choiceId) => (stageFourBottomCorrectIds.includes(choiceId) ? count + 1 : count), 0)
+  const stageFourPlacedCorrect = stageFourTopPlacedCorrect + stageFourBottomPlacedCorrect
+  const isStageFourSolved = stageFourPlacedCorrect === STAGE_FOUR_TOTAL_CORRECT
 
   const proceedToStageThree = () => {
     setStageTwoSelectedChoiceId(null)
@@ -614,6 +708,62 @@ function App() {
     setIsStageFourCompleteNoticeOpen(false)
     setStoryPage(32)
   }
+
+  useEffect(() => {
+    const music = new Audio(backgroundMusicTrack)
+    music.loop = true
+    music.volume = 0.35
+    music.preload = 'auto'
+    backgroundMusicRef.current = music
+
+    return () => {
+      music.pause()
+      music.currentTime = 0
+      backgroundMusicRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    const music = backgroundMusicRef.current
+    if (!music) {
+      return
+    }
+
+    if (isMusicOn) {
+      // Browsers may block autoplay until a user gesture; ignore that expected rejection.
+      music.play().catch(() => {})
+      return
+    }
+
+    music.pause()
+  }, [isMusicOn])
+
+  useEffect(() => {
+    const tryStartMusic = () => {
+      const music = backgroundMusicRef.current
+      if (!music || !isMusicOn) {
+        return
+      }
+
+      music.play().catch(() => {})
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        tryStartMusic()
+      }
+    }
+
+    window.addEventListener('pointerdown', tryStartMusic)
+    window.addEventListener('keydown', tryStartMusic)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('pointerdown', tryStartMusic)
+      window.removeEventListener('keydown', tryStartMusic)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [isMusicOn])
 
   useEffect(() => {
     if (screen === 'play' && storyPage === 28 && isStageTwoSolved) {
@@ -708,12 +858,39 @@ function App() {
           setStageTwoSlots(savedState.stageTwoSlots.map((item) => (typeof item === 'string' ? item : null)))
         }
 
+        const validStageTwoChoiceIds = new Set(stageTwoChoices.map((choice) => choice.id))
+        if (
+          Array.isArray(savedState.stageTwoChoiceOrder) &&
+          savedState.stageTwoChoiceOrder.length === stageTwoChoices.length &&
+          savedState.stageTwoChoiceOrder.every((id) => typeof id === 'string' && validStageTwoChoiceIds.has(id))
+        ) {
+          setStageTwoChoiceOrder(savedState.stageTwoChoiceOrder)
+        }
+
         if (Array.isArray(savedState.stageThreeSlots) && savedState.stageThreeSlots.length === STAGE_THREE_TOTAL_SLOT_COUNT) {
           setStageThreeSlots(savedState.stageThreeSlots.map((item) => (typeof item === 'string' ? item : null)))
         }
 
+        const validStageThreeChoiceIds = new Set(stageThreeChoices.map((choice) => choice.id))
+        if (
+          Array.isArray(savedState.stageThreeChoiceOrder) &&
+          savedState.stageThreeChoiceOrder.length === stageThreeChoices.length &&
+          savedState.stageThreeChoiceOrder.every((id) => typeof id === 'string' && validStageThreeChoiceIds.has(id))
+        ) {
+          setStageThreeChoiceOrder(savedState.stageThreeChoiceOrder)
+        }
+
         if (Array.isArray(savedState.stageFourSlots) && savedState.stageFourSlots.length === STAGE_FOUR_TOTAL_SLOT_COUNT) {
           setStageFourSlots(savedState.stageFourSlots.map((item) => (typeof item === 'string' ? item : null)))
+        }
+
+        const validStageFourChoiceIds = new Set(stageFourChoices.map((choice) => choice.id))
+        if (
+          Array.isArray(savedState.stageFourChoiceOrder) &&
+          savedState.stageFourChoiceOrder.length === stageFourChoices.length &&
+          savedState.stageFourChoiceOrder.every((id) => typeof id === 'string' && validStageFourChoiceIds.has(id))
+        ) {
+          setStageFourChoiceOrder(savedState.stageFourChoiceOrder)
         }
       }
     } catch {
@@ -737,8 +914,11 @@ function App() {
       isQuizSolved,
       quizStep,
       stageTwoSlots,
+      stageTwoChoiceOrder,
       stageThreeSlots,
+      stageThreeChoiceOrder,
       stageFourSlots,
+      stageFourChoiceOrder,
     }
 
     try {
@@ -753,7 +933,10 @@ function App() {
     isQuizSolved,
     quizStep,
     screen,
+    stageThreeChoiceOrder,
     stageThreeSlots,
+    stageFourChoiceOrder,
+    stageTwoChoiceOrder,
     stageTwoSlots,
     storyPage,
     unlockedLevels,
@@ -1932,7 +2115,7 @@ function App() {
                       fontSize: 'clamp(12px, 1.1vw, 18px)'
                     }}
                   >
-                    Tamang puwesto: {stageTwoPlacedCorrect} / {stageTwoCorrectBySlot.length}
+                    Tamang sagot: {stageTwoPlacedCorrect} / {stageTwoCorrectBySlot.length}
                   </p>
 
                   {isStageTwoCompleteNoticeOpen && (
@@ -2252,7 +2435,7 @@ function App() {
                       fontSize: 'clamp(12px, 1.1vw, 18px)'
                     }}
                   >
-                    Tamang puwesto: {stageThreePlacedCorrect} / {stageThreeCorrectBySlot.length}
+                    Tamang sagot: {stageThreePlacedCorrect} / {stageThreeCorrectBySlot.length}
                   </p>
 
                   {isStageThreeCompleteNoticeOpen && (
@@ -2486,7 +2669,9 @@ function App() {
                                   return
                                 }
                                 if (stageFourSlots[slotIndex]) {
+                                  const pickedChoiceId = stageFourSlots[slotIndex]
                                   clearStageFourSlot(slotIndex)
+                                  setStageFourSelectedChoiceId(pickedChoiceId)
                                 }
                               }}
                               style={{
@@ -2618,7 +2803,9 @@ function App() {
                             return
                           }
                           if (stageFourSlots[slotIndex]) {
+                            const pickedChoiceId = stageFourSlots[slotIndex]
                             clearStageFourSlot(slotIndex)
+                            setStageFourSelectedChoiceId(pickedChoiceId)
                           }
                         }}
                         style={{
@@ -2664,7 +2851,7 @@ function App() {
                       fontSize: 'clamp(12px, 1.1vw, 18px)'
                     }}
                   >
-                    Nailagay: {stageFourPlacedCount} / {STAGE_FOUR_TOTAL_SLOT_COUNT}
+                    Tamang sagot: {stageFourPlacedCorrect} / {STAGE_FOUR_TOTAL_CORRECT}
                   </p>
 
                   {isStageFourCompleteNoticeOpen && (
@@ -3828,9 +4015,12 @@ function App() {
     selectedStageThreeTopic,
     stageFourSelectedChoiceId,
     stageFourSlots,
+    stageFourChoiceOrder,
+    stageThreeChoiceOrder,
     stageThreePoemDraft,
     stageThreeSelectedChoiceId,
     stageThreeSlots,
+    stageTwoChoiceOrder,
     stageTwoSelectedChoiceId,
     stageTwoSlots,
     storyPage,
