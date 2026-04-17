@@ -512,10 +512,11 @@ function App() {
   const [stageFourSelectedChoiceId, setStageFourSelectedChoiceId] = useState(null)
   const [isStageFourCompleteNoticeOpen, setIsStageFourCompleteNoticeOpen] = useState(false)
   const [selectedStageThreeTopic, setSelectedStageThreeTopic] = useState(null)
-  const [stageThreePoemDraft, setStageThreePoemDraft] = useState('')
+  const stageThreePlayerNameRef = useRef('')
+  const stageThreePoemDraftRef = useRef('')
+  const [isStageThreeSubmitEnabled, setIsStageThreeSubmitEnabled] = useState(false)
   const [poemSubmissions, setPoemSubmissions] = useState([])
   const [playerAnswerLogs, setPlayerAnswerLogs] = useState([])
-  const [adminPanelView, setAdminPanelView] = useState('poems')
   const [activeAdminSubmissionId, setActiveAdminSubmissionId] = useState(null)
   const [isPoemSubmitPopupOpen, setIsPoemSubmitPopupOpen] = useState(false)
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
@@ -523,6 +524,15 @@ function App() {
   const [adminPinInput, setAdminPinInput] = useState('')
   const [adminAuthError, setAdminAuthError] = useState('')
   const [hasLoadedProgress, setHasLoadedProgress] = useState(false)
+  const [cloudSyncError, setCloudSyncError] = useState('')
+
+  const updateStageThreeSubmitEnabled = ({ nextPlayerName = null, nextPoemDraft = null } = {}) => {
+    const resolvedPlayerName = nextPlayerName ?? stageThreePlayerNameRef.current
+    const resolvedPoemDraft = nextPoemDraft ?? stageThreePoemDraftRef.current
+    const nextEnabled = Boolean(resolvedPlayerName.trim() && resolvedPoemDraft.trim())
+
+    setIsStageThreeSubmitEnabled((prevEnabled) => (prevEnabled === nextEnabled ? prevEnabled : nextEnabled))
+  }
 
   const startStory = () => {
     setStoryPage(1)
@@ -541,7 +551,9 @@ function App() {
     setStageFourSelectedChoiceId(null)
     setIsStageFourCompleteNoticeOpen(false)
     setSelectedStageThreeTopic(null)
-    setStageThreePoemDraft('')
+    stageThreePlayerNameRef.current = ''
+    stageThreePoemDraftRef.current = ''
+    setIsStageThreeSubmitEnabled(false)
     setIsPoemSubmitPopupOpen(false)
     setScreen('play')
   }
@@ -612,11 +624,21 @@ function App() {
     setScreen('menu')
   }
 
-  const logPlayerAnswer = ({ stage, activity, answerText, isCorrect = null, page = null, topic = null, extra = null }) => {
+  const logPlayerAnswer = ({
+    stage,
+    activity,
+    answerText,
+    isCorrect = null,
+    page = null,
+    topic = null,
+    extra = null,
+    id = null,
+    submittedAt = null,
+  }) => {
     const resolvedStage = normalizeStageLabel({ stage, page })
 
     const logEntry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      id: id || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       playerSessionId,
       stage: resolvedStage,
       activity,
@@ -625,7 +647,7 @@ function App() {
       page,
       topic,
       extra,
-      submittedAt: new Date().toISOString(),
+      submittedAt: submittedAt || new Date().toISOString(),
     }
 
     setPlayerAnswerLogs((prev) => [logEntry, ...prev].slice(0, 1200))
@@ -655,14 +677,16 @@ function App() {
   }
 
   const handleStageThreeDone = () => {
-    const poem = stageThreePoemDraft.trim()
-    if (!poem) {
+    const playerName = stageThreePlayerNameRef.current.trim()
+    const poem = stageThreePoemDraftRef.current.trim()
+    if (!playerName || !poem) {
       return
     }
 
     const topic = selectedStageThreeTopic || stageThreeBoxTopics[0]
     const submission = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      playerName,
       poem,
       topic,
       submittedAt: new Date().toISOString(),
@@ -671,13 +695,16 @@ function App() {
     setPoemSubmissions((prev) => [submission, ...prev])
     setActiveAdminSubmissionId(submission.id)
     logPlayerAnswer({
+      id: submission.id,
       stage: 'Stage III',
       activity: 'Final poem submission',
       answerText: submission.poem,
       isCorrect: true,
       page: 42,
       topic: submission.topic,
+      submittedAt: submission.submittedAt,
       extra: {
+        playerName: submission.playerName,
         source: 'stage-five-done',
       },
     })
@@ -687,12 +714,42 @@ function App() {
         return
       }
 
-      const { error } = await supabase.from('poem_submissions').insert({
+      let { error } = await supabase.from('poem_submissions').insert({
         id: submission.id,
+        player_name: submission.playerName,
         poem: submission.poem,
         topic: submission.topic,
         submitted_at: submission.submittedAt,
       })
+
+      if (error && typeof error.message === 'string') {
+        const message = error.message.toLowerCase()
+
+        if (message.includes('player_name')) {
+          const fallbackInsert = await supabase.from('poem_submissions').insert({
+            id: submission.id,
+            poem: submission.poem,
+            topic: submission.topic,
+            submitted_at: submission.submittedAt,
+          })
+
+          error = fallbackInsert.error
+        }
+      }
+
+      if (error && typeof error.message === 'string') {
+        const message = error.message.toLowerCase()
+
+        if (message.includes('topic')) {
+          const fallbackInsert = await supabase.from('poem_submissions').insert({
+            id: submission.id,
+            poem: submission.poem,
+            submitted_at: submission.submittedAt,
+          })
+
+          error = fallbackInsert.error
+        }
+      }
 
       if (error) {
         // Keep local submission even if remote sync fails.
@@ -1336,9 +1393,14 @@ function App() {
                 typeof item === 'object' &&
                 typeof item.id === 'string' &&
                 typeof item.poem === 'string' &&
+                (typeof item.playerName === 'string' || typeof item.playerName === 'undefined') &&
                 typeof item.topic === 'string' &&
                 typeof item.submittedAt === 'string',
             )
+            .map((item) => ({
+              ...item,
+              playerName: typeof item.playerName === 'string' ? item.playerName : 'Unknown player',
+            }))
             .slice(0, 300),
         )
       }
@@ -1382,20 +1444,35 @@ function App() {
     let pollIntervalId = null
     let throttledReloadTimeoutId = null
 
+    const mergeById = (localRows, cloudRows, limit) => {
+      const merged = [...cloudRows]
+      const existingIds = new Set(cloudRows.map((row) => row.id))
+
+      for (const localRow of localRows) {
+        if (!existingIds.has(localRow.id)) {
+          merged.push(localRow)
+        }
+      }
+
+      return merged.slice(0, limit)
+    }
+
     const mapSupabasePoemSubmissions = (rows) =>
       rows
         .filter(
           (item) =>
             item &&
             typeof item.id === 'string' &&
+            (typeof item.player_name === 'string' || typeof item.player_name === 'undefined') &&
             typeof item.poem === 'string' &&
-            typeof item.topic === 'string' &&
+            (typeof item.topic === 'string' || typeof item.topic === 'undefined') &&
             typeof item.submitted_at === 'string',
         )
         .map((item) => ({
           id: item.id,
+          playerName: typeof item.player_name === 'string' && item.player_name.trim() ? item.player_name : 'Unknown player',
           poem: item.poem,
-          topic: item.topic,
+          topic: typeof item.topic === 'string' && item.topic.trim() ? item.topic : 'No topic',
           submittedAt: item.submitted_at,
         }))
 
@@ -1427,23 +1504,51 @@ function App() {
         }))
 
     const loadPoemSubmissionsFromSupabase = async () => {
-      const poemResult = await supabase
-        .from('poem_submissions')
-        .select('id, poem, topic, submitted_at')
-        .order('submitted_at', { ascending: false })
-        .limit(300)
+      const poemSelectVariants = [
+        'id, player_name, poem, topic, submitted_at',
+        'id, poem, topic, submitted_at',
+        'id, player_name, poem, submitted_at',
+        'id, poem, submitted_at',
+      ]
+
+      let poemResult = null
+
+      for (const selectClause of poemSelectVariants) {
+        poemResult = await supabase
+          .from('poem_submissions')
+          .select(selectClause)
+          .order('submitted_at', { ascending: false })
+          .limit(300)
+
+        if (!poemResult.error) {
+          break
+        }
+
+        const message =
+          poemResult.error && typeof poemResult.error.message === 'string'
+            ? poemResult.error.message.toLowerCase()
+            : ''
+        const isMissingOptionalColumn = message.includes('player_name') || message.includes('topic')
+
+        if (!isMissingOptionalColumn) {
+          break
+        }
+      }
 
       if (isCancelled) {
         return
       }
 
       if (poemResult.error) {
+        setCloudSyncError(`Poem sync error: ${poemResult.error.message}`)
         console.error('Failed to load submissions from Supabase:', poemResult.error.message)
         return
       }
 
       if (Array.isArray(poemResult.data)) {
-        setPoemSubmissions(mapSupabasePoemSubmissions(poemResult.data))
+        setCloudSyncError('')
+        const mappedCloudRows = mapSupabasePoemSubmissions(poemResult.data)
+        setPoemSubmissions((prev) => mergeById(prev, mappedCloudRows, 300))
       }
     }
 
@@ -1459,17 +1564,21 @@ function App() {
       }
 
       if (answerResult.error) {
+        setCloudSyncError(`Answer sync error: ${answerResult.error.message}`)
         console.error('Failed to load player answers from Supabase:', answerResult.error.message)
         return
       }
 
       if (Array.isArray(answerResult.data)) {
-        setPlayerAnswerLogs(mapSupabasePlayerAnswers(answerResult.data))
+        setCloudSyncError('')
+        const mappedCloudRows = mapSupabasePlayerAnswers(answerResult.data)
+        setPlayerAnswerLogs((prev) => mergeById(prev, mappedCloudRows, 1200))
       }
     }
 
     const loadSupabaseAdminData = async () => {
       if (!isSupabaseConfigured || !supabase) {
+        setCloudSyncError('Supabase is not configured. Create a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
         return
       }
 
@@ -1479,15 +1588,18 @@ function App() {
       ])
 
       if (poemLoad.status === 'rejected') {
+        setCloudSyncError('Unexpected poem sync error. Check browser console for details.')
         console.error('Unexpected error while loading submissions from Supabase:', poemLoad.reason)
       }
 
       if (answerLoad.status === 'rejected') {
+        setCloudSyncError('Unexpected answer sync error. Check browser console for details.')
         console.error('Unexpected error while loading player answers from Supabase:', answerLoad.reason)
       }
     }
 
     if (!isSupabaseConfigured || !supabase) {
+      setCloudSyncError('Supabase is not configured. Create a .env file with VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.')
       return () => {
         isCancelled = true
       }
@@ -3951,18 +4063,49 @@ function App() {
                     <section className="stage-three-writing-grid">
                       <section className="stage-three-writing-main" aria-label="Poem writing area">
                         <textarea
-                          value={stageThreePoemDraft}
+                          defaultValue={stageThreePoemDraftRef.current}
                           onPointerDown={(event) => event.stopPropagation()}
                           onMouseDown={(event) => event.stopPropagation()}
                           onClick={(event) => event.stopPropagation()}
                           onKeyDown={(event) => event.stopPropagation()}
                           onFocus={(event) => event.stopPropagation()}
-                          onChange={(event) => setStageThreePoemDraft(event.target.value)}
+                          onChange={(event) => {
+                            stageThreePoemDraftRef.current = event.target.value
+                            updateStageThreeSubmitEnabled({ nextPoemDraft: event.target.value })
+                          }}
                           placeholder="Isulat dito ang iyong tula..."
                         />
                       </section>
 
                       <aside className="stage-three-writing-side" aria-label="Topic and materials">
+                        <section className="stage-three-side-box">
+                          <h2>Pangalan</h2>
+                          <input
+                            type="text"
+                            defaultValue={stageThreePlayerNameRef.current}
+                            onPointerDown={(event) => event.stopPropagation()}
+                            onMouseDown={(event) => event.stopPropagation()}
+                            onClick={(event) => event.stopPropagation()}
+                            onKeyDown={(event) => event.stopPropagation()}
+                            onFocus={(event) => event.stopPropagation()}
+                            onChange={(event) => {
+                              stageThreePlayerNameRef.current = event.target.value
+                              updateStageThreeSubmitEnabled({ nextPlayerName: event.target.value })
+                            }}
+                            placeholder="Ilagay ang pangalan mo"
+                            maxLength={80}
+                            style={{
+                              width: '100%',
+                              boxSizing: 'border-box',
+                              border: '2px solid rgba(0, 0, 0, 0.8)',
+                              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                              padding: '10px 12px',
+                              fontSize: '1rem',
+                              fontWeight: '600',
+                            }}
+                          />
+                        </section>
+
                         <section className="stage-three-side-box">
                           <h2>Paksa</h2>
                           <p>{activeTopic}</p>
@@ -3980,7 +4123,7 @@ function App() {
                         <button
                           type="button"
                           className="stage-three-done-button"
-                          disabled={!stageThreePoemDraft.trim()}
+                          disabled={!isStageThreeSubmitEnabled}
                           onClick={(event) => {
                             event.stopPropagation()
                             handleStageThreeDone()
@@ -3996,10 +4139,6 @@ function App() {
                         role="dialog"
                         aria-modal="true"
                         aria-label="Submission successful"
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          continueAfterPoemSubmit()
-                        }}
                         style={{
                           position: 'fixed',
                           inset: 0,
@@ -4008,7 +4147,6 @@ function App() {
                           placeItems: 'center',
                           padding: '18px',
                           zIndex: 50,
-                          cursor: 'pointer',
                         }}
                       >
                         <section
@@ -4042,7 +4180,7 @@ function App() {
                               lineHeight: '1.35',
                             }}
                           >
-                            Your poem has been submitted and added to the Admin panel.
+                            Nice work! Your poem has been submitted and is now visible in the Admin panel.
                           </p>
                           <button
                             type="button"
@@ -4755,8 +4893,52 @@ function App() {
       const finalPoemAnswerLogs = playerAnswerLogs.filter(
         (entry) => typeof entry?.activity === 'string' && entry.activity.trim().toLowerCase() === 'final poem submission',
       )
+      const fallbackSubmissionsFromAnswers = finalPoemAnswerLogs
+        .filter((entry) => typeof entry?.id === 'string' && typeof entry?.answerText === 'string')
+        .map((entry) => {
+          const fallbackPlayerName =
+            entry?.extra && typeof entry.extra === 'object' && typeof entry.extra.playerName === 'string' && entry.extra.playerName.trim()
+              ? entry.extra.playerName.trim()
+              : 'Unknown player'
+
+          return {
+            id: entry.id,
+            playerName: fallbackPlayerName,
+            poem: entry.answerText,
+            topic: typeof entry.topic === 'string' && entry.topic.trim() ? entry.topic : 'No topic',
+            submittedAt: entry.submittedAt,
+          }
+        })
+      const adminSubmissions = [...poemSubmissions]
+      const adminSubmissionIds = new Set(adminSubmissions.map((submission) => submission.id))
+
+      for (const fallbackSubmission of fallbackSubmissionsFromAnswers) {
+        if (!adminSubmissionIds.has(fallbackSubmission.id)) {
+          adminSubmissions.push(fallbackSubmission)
+          adminSubmissionIds.add(fallbackSubmission.id)
+        }
+      }
+
       const activeSubmission =
-        poemSubmissions.find((submission) => submission.id === activeAdminSubmissionId) || poemSubmissions[0] || null
+        adminSubmissions.find((submission) => submission.id === activeAdminSubmissionId) || adminSubmissions[0] || null
+      const finalPoemAnswerLogsById = new Map(finalPoemAnswerLogs.map((entry) => [entry.id, entry]))
+      const selectedSubmissionAnswerLogs = activeSubmission
+        ? finalPoemAnswerLogs.filter(
+            (entry) =>
+              entry.id === activeSubmission.id ||
+              (typeof entry.answerText === 'string' && entry.answerText.trim() === activeSubmission.poem.trim()),
+          )
+        : []
+      const activeSubmissionLog = activeSubmission ? finalPoemAnswerLogsById.get(activeSubmission.id) : null
+      const activeSubmissionPlayerName =
+        typeof activeSubmission?.playerName === 'string' && activeSubmission.playerName.trim() && activeSubmission.playerName !== 'Unknown player'
+          ? activeSubmission.playerName
+          : activeSubmissionLog?.extra &&
+              typeof activeSubmissionLog.extra === 'object' &&
+              typeof activeSubmissionLog.extra.playerName === 'string' &&
+              activeSubmissionLog.extra.playerName.trim()
+            ? activeSubmissionLog.extra.playerName.trim()
+            : 'Unknown player'
 
       return (
         <main className="menu-screen" aria-label="Admin submissions panel">
@@ -4776,8 +4958,23 @@ function App() {
           >
             <h1 style={{ margin: '0 0 12px', fontSize: 'clamp(30px, 4vw, 52px)' }}>Admin Panel</h1>
             <p style={{ margin: '0 0 14px', fontWeight: '700' }}>
-              Poems: {poemSubmissions.length} | Player answers: {finalPoemAnswerLogs.length}
+              Poems: {adminSubmissions.length} | Player answers: {finalPoemAnswerLogs.length}
             </p>
+
+            {cloudSyncError && (
+              <p
+                style={{
+                  margin: '0 0 14px',
+                  border: '2px solid rgba(118, 22, 22, 0.45)',
+                  backgroundColor: 'rgba(255, 233, 224, 0.9)',
+                  color: '#5f1010',
+                  fontWeight: '700',
+                  padding: '8px 10px',
+                }}
+              >
+                {cloudSyncError}
+              </p>
+            )}
 
             <button
               type="button"
@@ -4795,129 +4992,8 @@ function App() {
               Lock Admin
             </button>
 
-            <section
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                marginBottom: '14px',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setAdminPanelView('poems')}
-                style={{
-                  border: '2px solid rgba(0, 0, 0, 0.86)',
-                  backgroundColor:
-                    adminPanelView === 'poems' ? 'rgba(195, 230, 168, 0.9)' : 'rgba(255, 255, 255, 0.82)',
-                  color: '#111',
-                  fontWeight: '700',
-                  padding: '8px 14px',
-                  cursor: 'pointer',
-                }}
-              >
-                Poem Submissions
-              </button>
-              <button
-                type="button"
-                onClick={() => setAdminPanelView('answers')}
-                style={{
-                  border: '2px solid rgba(0, 0, 0, 0.86)',
-                  backgroundColor:
-                    adminPanelView === 'answers' ? 'rgba(195, 230, 168, 0.9)' : 'rgba(255, 255, 255, 0.82)',
-                  color: '#111',
-                  fontWeight: '700',
-                  padding: '8px 14px',
-                  cursor: 'pointer',
-                }}
-              >
-                Player Answers
-              </button>
-            </section>
-
-            {adminPanelView === 'poems' ? (
-              poemSubmissions.length === 0 ? (
-                <p style={{ margin: 0, fontWeight: '600' }}>No poem submissions yet.</p>
-              ) : (
-                <section
-                  style={{
-                    display: 'grid',
-                    gap: '12px',
-                  }}
-                >
-                  <section
-                    role="tablist"
-                    aria-label="Submitted poems tabs"
-                    style={{
-                      display: 'flex',
-                      gap: '8px',
-                      overflowX: 'auto',
-                      paddingBottom: '6px',
-                    }}
-                  >
-                    {poemSubmissions.map((submission, index) => {
-                      const isActive = submission.id === activeSubmission?.id
-
-                      return (
-                        <button
-                          key={submission.id}
-                          type="button"
-                          role="tab"
-                          aria-selected={isActive}
-                          onClick={() => setActiveAdminSubmissionId(submission.id)}
-                          style={{
-                            border: '2px solid rgba(0, 0, 0, 0.82)',
-                            backgroundColor: isActive
-                              ? 'rgba(195, 230, 168, 0.9)'
-                              : 'rgba(255, 255, 255, 0.8)',
-                            color: '#111',
-                            fontWeight: '700',
-                            padding: '8px 12px',
-                            cursor: 'pointer',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          Submission {poemSubmissions.length - index}
-                        </button>
-                      )
-                    })}
-                  </section>
-
-                  {activeSubmission && (
-                    <article
-                      role="tabpanel"
-                      style={{
-                        border: '2px solid rgba(0, 0, 0, 0.86)',
-                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                        padding: '12px',
-                        maxHeight: '60vh',
-                        overflowY: 'auto',
-                      }}
-                    >
-                      <p style={{ margin: '0 0 6px', fontWeight: '800' }}>
-                        Selected: Submission{' '}
-                        {poemSubmissions.length - poemSubmissions.findIndex((item) => item.id === activeSubmission.id)}
-                      </p>
-                      <p style={{ margin: '0 0 6px', fontWeight: '700' }}>Topic: {activeSubmission.topic}</p>
-                      <p style={{ margin: '0 0 8px', fontSize: '0.95rem', opacity: 0.8 }}>
-                        Submitted: {new Date(activeSubmission.submittedAt).toLocaleString()}
-                      </p>
-                      <pre
-                        style={{
-                          margin: 0,
-                          whiteSpace: 'pre-wrap',
-                          fontFamily: 'Poppins, system-ui, sans-serif',
-                          lineHeight: '1.4',
-                        }}
-                      >
-                        {activeSubmission.poem}
-                      </pre>
-                    </article>
-                  )}
-                </section>
-              )
-            ) : finalPoemAnswerLogs.length === 0 ? (
-              <p style={{ margin: 0, fontWeight: '600' }}>No player answers yet.</p>
+            {adminSubmissions.length === 0 ? (
+              <p style={{ margin: 0, fontWeight: '600' }}>No poem submissions yet.</p>
             ) : (
               <section
                 style={{
@@ -4925,42 +5001,176 @@ function App() {
                   gap: '12px',
                 }}
               >
-                <article
-                  role="region"
-                  aria-label="Player answer logs"
+                <section
+                  role="tablist"
+                  aria-label="Submitted poems tabs"
                   style={{
-                    border: '2px solid rgba(0, 0, 0, 0.86)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    padding: '12px',
-                    maxHeight: '60vh',
-                    overflowY: 'auto',
-                    display: 'grid',
+                    display: 'flex',
                     gap: '8px',
+                    overflowX: 'auto',
+                    paddingBottom: '6px',
                   }}
                 >
-                  {finalPoemAnswerLogs.map((entry) => (
+                  {adminSubmissions.map((submission, index) => {
+                    const isActive = submission.id === activeSubmission?.id
+                    const submissionPlayerName =
+                      typeof submission.playerName === 'string' && submission.playerName.trim()
+                        ? submission.playerName.trim()
+                        : 'Unknown player'
+
+                    return (
+                      <button
+                        key={submission.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={isActive}
+                        onClick={() => setActiveAdminSubmissionId(submission.id)}
+                        style={{
+                          border: '2px solid rgba(0, 0, 0, 0.82)',
+                          backgroundColor: isActive ? 'rgba(195, 230, 168, 0.9)' : 'rgba(255, 255, 255, 0.8)',
+                          color: '#111',
+                          fontWeight: '700',
+                          padding: '8px 12px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}
+                      >
+                        <span>Submission {adminSubmissions.length - index}</span>
+                        <span style={{ fontSize: '0.85rem', opacity: 0.75 }}>({submissionPlayerName})</span>
+                      </button>
+                    )
+                  })}
+                </section>
+
+                {activeSubmission && (
+                  <article
+                    role="tabpanel"
+                    style={{
+                      border: '2px solid rgba(0, 0, 0, 0.86)',
+                      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                      padding: '12px',
+                      maxHeight: '60vh',
+                      overflowY: 'auto',
+                    }}
+                  >
+                    <p style={{ margin: '0 0 10px', fontWeight: '800' }}>
+                      Selected: Submission{' '}
+                      {adminSubmissions.length - adminSubmissions.findIndex((item) => item.id === activeSubmission.id)}
+                    </p>
+
                     <section
-                      key={entry.id}
+                      aria-label="Poem metadata"
                       style={{
-                        border: '1px solid rgba(0, 0, 0, 0.35)',
-                        padding: '8px',
-                        backgroundColor: 'rgba(246, 252, 242, 0.85)',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                        gap: '8px',
+                        marginBottom: '10px',
                       }}
                     >
-                      <p style={{ margin: '0 0 4px', fontWeight: '800' }}>
-                        Stage III - Final poem submission
-                      </p>
-                      <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>
-                        Session: {entry.playerSessionId} | Page: {entry.page ?? '-'} | Correct:{' '}
-                        {entry.isCorrect === null ? 'n/a' : entry.isCorrect ? 'yes' : 'no'}
-                      </p>
-                      <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>
-                        Submitted: {new Date(entry.submittedAt).toLocaleString()}
-                      </p>
-                      <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{entry.answerText}</p>
+                      <section
+                        style={{
+                          border: '1px solid rgba(0, 0, 0, 0.25)',
+                          backgroundColor: 'rgba(246, 252, 242, 0.85)',
+                          padding: '8px',
+                        }}
+                      >
+                        <p style={{ margin: '0 0 2px', fontSize: '0.8rem', opacity: 0.75 }}>Topic</p>
+                        <p style={{ margin: 0, fontWeight: '700' }}>{activeSubmission.topic}</p>
+                      </section>
+                      <section
+                        style={{
+                          border: '1px solid rgba(0, 0, 0, 0.25)',
+                          backgroundColor: 'rgba(246, 252, 242, 0.85)',
+                          padding: '8px',
+                        }}
+                      >
+                        <p style={{ margin: '0 0 2px', fontSize: '0.8rem', opacity: 0.75 }}>Player</p>
+                        <p style={{ margin: 0, fontWeight: '700' }}>{activeSubmissionPlayerName}</p>
+                      </section>
+                      <section
+                        style={{
+                          border: '1px solid rgba(0, 0, 0, 0.25)',
+                          backgroundColor: 'rgba(246, 252, 242, 0.85)',
+                          padding: '8px',
+                        }}
+                      >
+                        <p style={{ margin: '0 0 2px', fontSize: '0.8rem', opacity: 0.75 }}>Submitted</p>
+                        <p style={{ margin: 0, fontWeight: '700' }}>{new Date(activeSubmission.submittedAt).toLocaleString()}</p>
+                      </section>
                     </section>
-                  ))}
-                </article>
+
+                    <p style={{ margin: '0 0 6px', fontWeight: '800' }}>Poem</p>
+                    <pre
+                      style={{
+                        margin: 0,
+                        whiteSpace: 'pre-wrap',
+                        fontFamily: 'Poppins, system-ui, sans-serif',
+                        lineHeight: '1.4',
+                      }}
+                    >
+                      {activeSubmission.poem}
+                    </pre>
+
+                    <section
+                      role="region"
+                      aria-label="Player answer logs"
+                      style={{
+                        marginTop: '12px',
+                        borderTop: '1px solid rgba(0, 0, 0, 0.2)',
+                        paddingTop: '12px',
+                        display: 'grid',
+                        gap: '8px',
+                      }}
+                    >
+                      <p style={{ margin: 0, fontWeight: '800' }}>Player Answers</p>
+                      {selectedSubmissionAnswerLogs.length === 0 ? (
+                        <p style={{ margin: 0, fontSize: '0.95rem' }}>No player answers yet.</p>
+                      ) : (
+                        selectedSubmissionAnswerLogs.map((entry) => {
+                          const playerName =
+                            entry?.extra && typeof entry.extra === 'object' && typeof entry.extra.playerName === 'string'
+                              ? entry.extra.playerName.trim()
+                              : ''
+                          const isSameAsSavedPoem =
+                            typeof entry.answerText === 'string' &&
+                            typeof activeSubmission.poem === 'string' &&
+                            entry.answerText.trim() === activeSubmission.poem.trim()
+
+                          return (
+                            <section
+                              key={entry.id}
+                              style={{
+                                border: '1px solid rgba(0, 0, 0, 0.35)',
+                                padding: '10px',
+                                backgroundColor: 'rgba(246, 252, 242, 0.85)',
+                              }}
+                            >
+                              <p style={{ margin: '0 0 6px', fontWeight: '800' }}>Stage III - Final poem submission</p>
+                              <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>Player: {playerName || 'Unknown player'}</p>
+                              <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>
+                                Session: {entry.playerSessionId} | Page: {entry.page ?? '-'}
+                              </p>
+                              <p style={{ margin: '0 0 4px', fontSize: '0.95rem' }}>
+                                Submitted: {new Date(entry.submittedAt).toLocaleString()} | Correct:{' '}
+                                {entry.isCorrect === null ? 'n/a' : entry.isCorrect ? 'yes' : 'no'}
+                              </p>
+                              {isSameAsSavedPoem ? (
+                                <p style={{ margin: 0, fontSize: '0.92rem', opacity: 0.8 }}>
+                                  Answer text matches the saved poem above.
+                                </p>
+                              ) : (
+                                <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{entry.answerText}</p>
+                              )}
+                            </section>
+                          )
+                        })
+                      )}
+                    </section>
+                  </article>
+                )}
               </section>
             )}
           </section>
@@ -5010,15 +5220,14 @@ function App() {
     stageFourSelectedChoiceId,
     stageFourSlots,
     stageFourChoiceOrder,
-    adminPanelView,
     activeAdminSubmissionId,
     isAdminAuthenticated,
     playerAnswerLogs,
     poemSubmissions,
     stageThreeChoiceOrder,
-    stageThreePoemDraft,
     stageThreeSelectedChoiceId,
     stageThreeSlots,
+    isStageThreeSubmitEnabled,
     isPoemSubmitPopupOpen,
     stageTwoChoiceOrder,
     stageTwoSelectedChoiceId,
